@@ -193,7 +193,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             Abmelden
           </button>
           <div className="px-3 mt-2 text-[10px] text-white/20">
-            BizManager v3.0 – Kostenlos
+            LocalFinance v3.0 – Kostenlos
           </div>
         </div>
       </aside>

@@ -1,4 +1,4 @@
--- BizManager Supabase Schema
+-- LocalFinance Supabase Schema
 -- Schweizer KMU Business Software
 -- Run this in Supabase SQL Editor
 

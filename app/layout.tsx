@@ -2,7 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'BizManager – Schweizer Business Software',
+  title: 'LocalFinance – Schweizer Business Software',
   description: 'Kostenlose bexio-Alternative für KMU, Freelancer und Startups',
 }
 
