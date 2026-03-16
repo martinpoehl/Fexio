@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 import { createClient } from '@/lib/supabase-server'
 
-// RESEND_API_KEY must be set in your environment (Vercel dashboard or .env.local)
-// Example: RESEND_API_KEY=re_xxxxxxxxxxxx
+// SMTP settings — set these in Vercel environment variables or .env.local:
+// SMTP_HOST=mail.hostpoint.ch
+// SMTP_PORT=587
+// SMTP_USER=info@dokagimo.myhostpoint.ch
+// SMTP_PASS=<dein E-Mail-Passwort>
 
 export async function POST(req: NextRequest) {
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.SMTP_PASS) {
     return NextResponse.json(
-      { error: 'E-Mail nicht konfiguriert. Bitte RESEND_API_KEY in Vercel setzen.' },
+      { error: 'E-Mail nicht konfiguriert. Bitte SMTP_PASS in Vercel setzen.' },
       { status: 500 }
     )
   }
@@ -291,31 +294,30 @@ export async function POST(req: NextRequest) {
 </html>
 `
 
+  const smtpUser = process.env.SMTP_USER || 'info@dokagimo.myhostpoint.ch'
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'mail.hostpoint.ch',
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: false,
+    auth: {
+      user: smtpUser,
+      pass: process.env.SMTP_PASS,
+    },
+  })
+
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    const { error: sendError } = await resend.emails.send({
-      from: 'Fexio <onboarding@resend.dev>',
-      to: [recipientEmail],
+    await transporter.sendMail({
+      from: `Fexio <${smtpUser}>`,
+      to: recipientEmail,
       subject,
       html,
     })
-
-    if (sendError) {
-      console.error('Resend error:', sendError)
-      const msg = sendError.message || ''
-      const isRateLimit = msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('limit')
-      const isDomain = msg.toLowerCase().includes('domain') || msg.toLowerCase().includes('from') || msg.toLowerCase().includes('testing')
-      let userMsg = 'E-Mail konnte nicht gesendet werden.'
-      if (isRateLimit) userMsg = 'Rate-Limit erreicht. Bitte etwas warten und erneut versuchen.'
-      if (isDomain) userMsg = 'Resend erlaubt auf dem Free-Plan nur Mails an deine eigene verifizierte Adresse. Bitte eine Domain in resend.com verifizieren.'
-      return NextResponse.json({ error: userMsg }, { status: 500 })
-    }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
     console.error('Send email error:', err)
     return NextResponse.json(
-      { error: err?.message || 'Unbekannter Fehler beim E-Mail-Versand.' },
+      { error: err?.message || 'E-Mail konnte nicht gesendet werden.' },
       { status: 500 }
     )
   }
