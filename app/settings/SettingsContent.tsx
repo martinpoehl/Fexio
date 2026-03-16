@@ -7,6 +7,7 @@ import { Building2, Mail, Phone, MapPin, CreditCard, Percent, Save, CheckCircle,
 export default function SettingsContent() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [uploading, setUploading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [company, setCompany] = useState<any>(null)
@@ -135,28 +136,33 @@ export default function SettingsContent() {
     try {
       setSaving(true)
       setSaved(false)
+      setSaveError('')
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user || !company) return
+      if (!user) throw new Error('Nicht eingeloggt.')
+      if (!company) throw new Error('Kein Firmenprofil gefunden.')
 
-      const [{ error: companyError }, { error: userError }] = await Promise.all([
-        supabase.from('companies').update(formData).eq('id', company.id),
-        supabase.auth.updateUser({
-          data: {
-            first_name: userMeta.first_name,
-            last_name: userMeta.last_name,
-            full_name: `${userMeta.first_name} ${userMeta.last_name}`.trim()
-          }
-        })
-      ])
-
+      // Try with logo_url, fall back without if column doesn't exist yet
+      let { error: companyError } = await supabase.from('companies').update(formData).eq('id', company.id)
+      if (companyError?.message?.includes('logo_url')) {
+        const { logo_url: _, ...dataWithoutLogo } = formData;
+        ({ error: companyError } = await supabase.from('companies').update(dataWithoutLogo).eq('id', company.id))
+      }
       if (companyError) throw companyError
+
+      const { error: userError } = await supabase.auth.updateUser({
+        data: {
+          first_name: userMeta.first_name,
+          last_name: userMeta.last_name,
+          full_name: `${userMeta.first_name} ${userMeta.last_name}`.trim()
+        }
+      })
       if (userError) throw userError
 
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving settings:', err)
-      alert('Fehler beim Speichern der Einstellungen')
+      setSaveError(err?.message || 'Fehler beim Speichern der Einstellungen')
     } finally {
       setSaving(false)
     }
@@ -362,6 +368,9 @@ export default function SettingsContent() {
         </div>
 
         <div className="flex items-center justify-end gap-4 pt-4 sticky bottom-6 z-10">
+          {saveError && (
+            <div className="text-red-600 text-sm font-medium">{saveError}</div>
+          )}
           {saved && (
             <div className="flex items-center gap-2 text-green-600 font-semibold text-sm animate-in fade-in slide-in-from-right-4">
               <CheckCircle size={18} /> Einstellungen gespeichert!
