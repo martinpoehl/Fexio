@@ -10,6 +10,8 @@ export default function ContactsContent() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingContact, setEditingContact] = useState<any>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   
   // Form state
   const [formData, setFormData] = useState({
@@ -86,46 +88,55 @@ export default function ContactsContent() {
         notes: ''
       })
     }
+    setSaveError('')
     setShowModal(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSaving(true)
+    setSaveError('')
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      
+
       const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
       if (!companies?.length) return
       const companyId = companies[0].id
 
-      // For backward compatibility or if we still have the name column NOT NULL (though migration drops it)
       const combinedName = `${formData.first_name} ${formData.last_name}`.trim() || formData.firm || 'Unbenannter Kontakt'
+      const payload = { ...formData, company_id: companyId, name: combinedName }
 
-      const payload = {
-        ...formData,
-        company_id: companyId,
-        name: combinedName // Maintain name column for existing constraints/logic
+      let error
+      if (editingContact) {
+        ({ error } = await supabase.from('contacts').update(payload).eq('id', editingContact.id))
+      } else {
+        ({ error } = await supabase.from('contacts').insert([payload]))
       }
 
-      if (editingContact) {
-        const { error } = await supabase
-          .from('contacts')
-          .update(payload)
-          .eq('id', editingContact.id)
-        if (error) throw error
-      } else {
-        const { error } = await supabase
-          .from('contacts')
-          .insert([payload])
-        if (error) throw error
+      if (error) {
+        // If name column was dropped in migration, retry without it
+        if (error.message?.includes('name')) {
+          const { name: _n, ...payloadWithoutName } = payload
+          let error2
+          if (editingContact) {
+            ({ error: error2 } = await supabase.from('contacts').update(payloadWithoutName).eq('id', editingContact.id))
+          } else {
+            ({ error: error2 } = await supabase.from('contacts').insert([payloadWithoutName]))
+          }
+          if (error2) throw error2
+        } else {
+          throw error
+        }
       }
 
       setShowModal(false)
       fetchContacts()
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving contact:', err)
-      alert('Fehler beim Speichern des Kontakts')
+      setSaveError(err?.message || 'Fehler beim Speichern des Kontakts')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -366,19 +377,23 @@ export default function ContactsContent() {
                   />
                 </div>
               </div>
+              {saveError && (
+                <p className="text-red-600 text-xs mb-3">{saveError}</p>
+              )}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowModal(false)}
                   className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
                 >
                   Abbrechen
                 </button>
-                <button 
+                <button
                   type="submit"
-                  className="px-6 py-2 bg-[#00875A] hover:bg-[#006B47] text-white rounded-lg text-sm font-semibold transition-colors shadow-sm"
+                  disabled={saving}
+                  className="px-6 py-2 bg-[#00875A] hover:bg-[#006B47] text-white rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50"
                 >
-                  Speichern
+                  {saving ? 'Speichert...' : 'Speichern'}
                 </button>
               </div>
             </form>
