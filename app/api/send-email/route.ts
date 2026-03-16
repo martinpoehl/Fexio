@@ -302,10 +302,13 @@ export async function POST(req: NextRequest) {
 
     if (sendError) {
       console.error('Resend error:', sendError)
-      return NextResponse.json(
-        { error: sendError.message || 'E-Mail konnte nicht gesendet werden.' },
-        { status: 500 }
-      )
+      const msg = sendError.message || ''
+      const isRateLimit = msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('limit')
+      const isDomain = msg.toLowerCase().includes('domain') || msg.toLowerCase().includes('from') || msg.toLowerCase().includes('testing')
+      let userMsg = 'E-Mail konnte nicht gesendet werden.'
+      if (isRateLimit) userMsg = 'Rate-Limit erreicht. Bitte etwas warten und erneut versuchen.'
+      if (isDomain) userMsg = 'Resend erlaubt auf dem Free-Plan nur Mails an deine eigene verifizierte Adresse. Bitte eine Domain in resend.com verifizieren.'
+      return NextResponse.json({ error: userMsg }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
