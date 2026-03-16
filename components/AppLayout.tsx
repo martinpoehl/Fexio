@@ -63,20 +63,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/auth/login'); return }
-      setUser(user)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { router.push('/auth/login'); return }
+        setUser(user)
 
-      const { data: companies } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('user_id', user.id)
-        .limit(1)
+        const { data: companies } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('user_id', user.id)
+          .limit(1)
 
-      if (companies && companies.length > 0) {
-        setCompany(companies[0])
+        if (companies && companies.length > 0) {
+          setCompany(companies[0])
+        }
+      } catch (err) {
+        console.error('Error loading AppLayout:', err)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     load()
   }, [])

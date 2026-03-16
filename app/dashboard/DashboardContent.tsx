@@ -25,71 +25,80 @@ export default function DashboardContent() {
 
   useEffect(() => {
     async function load() {
-      // Get company
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
-      const companyId = companies[0].id
+      try {
+        // Get company
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
+        
+        if (!companies?.length) {
+          setLoading(false)
+          return
+        }
+        
+        const companyId = companies[0].id
 
-      // Revenue (paid invoices)
-      const { data: paidInv } = await supabase
-        .from('documents')
-        .select('total')
-        .eq('company_id', companyId)
-        .eq('type', 'invoice')
-        .eq('status', 'bezahlt')
-      const revenue = (paidInv || []).reduce((s, i) => s + Number(i.total || 0), 0)
+        // Revenue (paid invoices)
+        const { data: paidInv } = await supabase
+          .from('documents')
+          .select('total')
+          .eq('company_id', companyId)
+          .eq('type', 'invoice')
+          .eq('status', 'bezahlt')
+        const revenue = (paidInv || []).reduce((s, i) => s + Number(i.total || 0), 0)
 
-      // Outstanding (open invoices)
-      const { data: openInv } = await supabase
-        .from('documents')
-        .select('total')
-        .eq('company_id', companyId)
-        .eq('type', 'invoice')
-        .in('status', ['offen', 'versendet'])
-      const outstanding = (openInv || []).reduce((s, i) => s + Number(i.total || 0), 0)
+        // Outstanding (open invoices)
+        const { data: openInv } = await supabase
+          .from('documents')
+          .select('total')
+          .eq('company_id', companyId)
+          .eq('type', 'invoice')
+          .in('status', ['offen', 'versendet'])
+        const outstanding = (openInv || []).reduce((s, i) => s + Number(i.total || 0), 0)
 
-      // Expenses
-      const { data: exps } = await supabase
-        .from('expenses')
-        .select('amount')
-        .eq('company_id', companyId)
-      const expenses = (exps || []).reduce((s, e) => s + Number(e.amount || 0), 0)
+        // Expenses
+        const { data: exps } = await supabase
+          .from('expenses')
+          .select('amount')
+          .eq('company_id', companyId)
+        const expenses = (exps || []).reduce((s, e) => s + Number(e.amount || 0), 0)
 
-      // This week time
-      const weekStart = new Date()
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1)
-      weekStart.setHours(0, 0, 0, 0)
-      const { data: weekTime } = await supabase
-        .from('time_entries')
-        .select('duration_minutes')
-        .eq('company_id', companyId)
-        .gte('date', weekStart.toISOString().split('T')[0])
-      const weekMinutes = (weekTime || []).reduce((s, t) => s + (t.duration_minutes || 0), 0)
+        // This week time
+        const weekStart = new Date()
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1)
+        weekStart.setHours(0, 0, 0, 0)
+        const { data: weekTime } = await supabase
+          .from('time_entries')
+          .select('duration_minutes')
+          .eq('company_id', companyId)
+          .gte('date', weekStart.toISOString().split('T')[0])
+        const weekMinutes = (weekTime || []).reduce((s, t) => s + (t.duration_minutes || 0), 0)
 
-      setStats({ revenue, outstanding, expenses, weekMinutes })
+        setStats({ revenue, outstanding, expenses, weekMinutes })
 
-      // Recent invoices
-      const { data: recInv } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('company_id', companyId)
-        .eq('type', 'invoice')
-        .order('created_at', { ascending: false })
-        .limit(5)
-      setRecentInvoices(recInv || [])
+        // Recent invoices
+        const { data: recInv } = await supabase
+          .from('documents')
+          .select('*')
+          .eq('company_id', companyId)
+          .eq('type', 'invoice')
+          .order('created_at', { ascending: false })
+          .limit(5)
+        setRecentInvoices(recInv || [])
 
-      // Recent time entries
-      const { data: recTime } = await supabase
-        .from('time_entries')
-        .select('*, projects(name)')
-        .eq('company_id', companyId)
-        .order('date', { ascending: false })
-        .limit(5)
-      setRecentTime(recTime || [])
-
-      setLoading(false)
+        // Recent time entries
+        const { data: recTime } = await supabase
+          .from('time_entries')
+          .select('*, projects(name)')
+          .eq('company_id', companyId)
+          .order('date', { ascending: false })
+          .limit(5)
+        setRecentTime(recTime || [])
+      } catch (err) {
+        console.error('Error loading dashboard:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])

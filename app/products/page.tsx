@@ -1,15 +1,10 @@
 import AppLayout from '@/components/AppLayout'
+import ProductsContent from './ProductsContent'
 
-export default function Page() {
+export default function ProductsPage() {
   return (
     <AppLayout>
-      <div>
-        <h1 className="text-[22px] font-bold text-gray-900 mb-2">Produkte</h1>
-        <p className="text-gray-400 text-sm">Diese Seite wird als nächstes gebaut.</p>
-        <div className="mt-6 bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-300">
-          Hier kommt die Produkte-Verwaltung hin
-        </div>
-      </div>
+      <ProductsContent />
     </AppLayout>
   )
 }
