@@ -83,9 +83,9 @@ export default function LoginPage() {
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-3 mb-3">
           <div className="w-10 h-10 bg-[#00875A] rounded-lg flex items-center justify-center text-white font-bold text-lg">
-            b
+            f
           </div>
-          <span className="text-2xl font-bold text-gray-900">LocalFinance</span>
+          <span className="text-2xl font-bold text-gray-900">Fexio</span>
         </div>
         <p className="text-gray-500 text-sm">Schweizer Business Software für KMU</p>
       </div>

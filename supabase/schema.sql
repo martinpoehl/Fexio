@@ -1,4 +1,4 @@
--- LocalFinance Supabase Schema
+-- Fexio Supabase Schema
 -- Schweizer KMU Business Software
 -- Run this in Supabase SQL Editor
 

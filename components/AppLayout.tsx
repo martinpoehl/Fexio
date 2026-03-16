@@ -96,7 +96,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <div className="h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 bg-[#00875A] rounded-lg flex items-center justify-center text-white font-bold text-lg mx-auto mb-3 animate-pulse">b</div>
+          <div className="w-10 h-10 bg-[#00875A] rounded-lg flex items-center justify-center text-white font-bold text-lg mx-auto mb-3 animate-pulse">f</div>
           <p className="text-gray-400 text-sm">Laden...</p>
         </div>
       </div>
@@ -193,7 +193,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             Abmelden
           </button>
           <div className="px-3 mt-2 text-[10px] text-white/20">
-            LocalFinance v3.0 – Kostenlos
+            Fexio v3.0 – Kostenlos
           </div>
         </div>
       </aside>

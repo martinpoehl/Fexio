@@ -1,4 +1,4 @@
-# LocalFinance – Next.js + Vercel + Supabase
+# Fexio – Next.js + Vercel + Supabase
 
 Schweizer Business Software – kostenlose bexio-Alternative.
 Läuft in der Cloud, erreichbar von überall, mit Login und Datenbank.
@@ -20,7 +20,7 @@ Läuft in der Cloud, erreichbar von überall, mit Login und Datenbank.
 ### Schritt 2: GitHub Repository erstellen
 
 ```bash
-cd LocalFinance-next
+cd Fexio-next
 git init
 git add .
 git commit -m "Initial commit"
@@ -29,7 +29,7 @@ git commit -m "Initial commit"
 Erstelle ein neues Repo auf [github.com](https://github.com/new) und pushe:
 
 ```bash
-git remote add origin https://github.com/DEIN-USERNAME/LocalFinance.git
+git remote add origin https://github.com/DEIN-USERNAME/Fexio.git
 git branch -M main
 git push -u origin main
 ```
@@ -42,7 +42,7 @@ git push -u origin main
    - `NEXT_PUBLIC_SUPABASE_URL` = deine Supabase URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = dein Supabase anon Key
 4. Klicke **Deploy**
-5. In ~60 Sekunden ist die App live unter `LocalFinance.vercel.app`
+5. In ~60 Sekunden ist die App live unter `Fexio.vercel.app`
 
 ### Schritt 4: Auth aktivieren
 
@@ -76,7 +76,7 @@ App läuft unter http://localhost:3000
 ## Projektstruktur
 
 ```
-LocalFinance-next/
+Fexio-next/
 ├── app/                    # Next.js App Router
 │   ├── layout.tsx          # Root Layout
 │   ├── globals.css         # Tailwind + Styles
@@ -149,7 +149,7 @@ Zum Vergleich: bexio Pro+ kostet CHF 45/Mo und du hast keine Kontrolle über die
 Das Grundgerüst (Schema, Auth, Middleware, Struktur) ist fertig.
 Jetzt musst du die einzelnen Seiten mit UI füllen. Du kannst:
 
-1. Die Komponenten aus der HTML-Version (LocalFinance-bexio.html) als
+1. Die Komponenten aus der HTML-Version (Fexio-bexio.html) als
    Vorlage nehmen und in React/Tailwind umschreiben
 2. Shadcn/ui installieren für fertige Komponenten:
    `npx shadcn-ui@latest init`
