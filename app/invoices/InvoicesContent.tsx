@@ -3,15 +3,29 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { useSearchParams } from 'next/navigation'
-import { Plus, Search, FileText, User, Calendar, CheckCircle2, AlertCircle, Clock, Trash2 } from 'lucide-react'
+import { Plus, Search, FileText, User, Calendar, CheckCircle2, AlertCircle, Clock, Trash2, X, Edit2 } from 'lucide-react'
 
 export default function InvoicesContent() {
   const searchParams = useSearchParams()
   const typeFilter = searchParams.get('type') || 'invoice' // invoice, offer, order
-  
+
   const [documents, setDocuments] = useState<any[]>([])
+  const [contacts, setContacts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [editingDoc, setEditingDoc] = useState<any>(null)
+
+  const [formData, setFormData] = useState({
+    number: '',
+    contact_id: '',
+    contact_name: '',
+    date: new Date().toISOString().split('T')[0],
+    due_date: '',
+    status: 'entwurf',
+    total: 0,
+    notes: ''
+  })
 
   const supabase = createClient()
 
@@ -29,19 +43,91 @@ export default function InvoicesContent() {
       if (!companies?.length) return
       const companyId = companies[0].id
 
-      const { data, error } = await supabase
-        .from('documents')
-        .select('*, contacts(name)')
-        .eq('company_id', companyId)
-        .eq('type', typeFilter)
-        .order('date', { ascending: false })
+      const [docsResult, contactsResult] = await Promise.all([
+        supabase.from('documents').select('*, contacts(name)').eq('company_id', companyId).eq('type', typeFilter).order('date', { ascending: false }),
+        supabase.from('contacts').select('id, name').eq('company_id', companyId).order('name')
+      ])
 
-      if (error) throw error
-      setDocuments(data || [])
+      if (docsResult.error) throw docsResult.error
+      setDocuments(docsResult.data || [])
+      setContacts(contactsResult.data || [])
     } catch (err) {
       console.error('Error fetching documents:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const prefixes: Record<string, string> = { invoice: 'RE', offer: 'OF', order: 'AU' }
+  const generateNumber = () => {
+    const year = new Date().getFullYear()
+    const seq = String(documents.length + 1).padStart(3, '0')
+    return `${prefixes[typeFilter]}-${year}-${seq}`
+  }
+
+  const handleOpenModal = (doc: any = null) => {
+    if (doc) {
+      setEditingDoc(doc)
+      setFormData({
+        number: doc.number || '',
+        contact_id: doc.contact_id || '',
+        contact_name: doc.contact_name || doc.contacts?.name || '',
+        date: doc.date || new Date().toISOString().split('T')[0],
+        due_date: doc.due_date || '',
+        status: doc.status || 'entwurf',
+        total: Number(doc.total) || 0,
+        notes: doc.notes || ''
+      })
+    } else {
+      setEditingDoc(null)
+      const dueDate = new Date()
+      dueDate.setDate(dueDate.getDate() + 30)
+      setFormData({
+        number: generateNumber(),
+        contact_id: '',
+        contact_name: '',
+        date: new Date().toISOString().split('T')[0],
+        due_date: dueDate.toISOString().split('T')[0],
+        status: 'entwurf',
+        total: 0,
+        notes: ''
+      })
+    }
+    setShowModal(true)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
+      if (!companies?.length) return
+      const companyId = companies[0].id
+
+      const selectedContact = contacts.find(c => c.id === formData.contact_id)
+      const payload: any = {
+        ...formData,
+        type: typeFilter,
+        company_id: companyId,
+        contact_name: selectedContact?.name || formData.contact_name
+      }
+      if (!payload.contact_id) delete payload.contact_id
+
+      if (editingDoc) {
+        const { error } = await supabase.from('documents').update(payload).eq('id', editingDoc.id)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('documents').insert([payload])
+        if (error) throw error
+      }
+
+      setShowModal(false)
+      fetchDocuments()
+    } catch (err) {
+      console.error('Error saving document:', err)
+      alert('Fehler beim Speichern')
     }
   }
 
@@ -94,7 +180,8 @@ export default function InvoicesContent() {
             Übersicht deiner {typeLabels[typeFilter].toLowerCase()}
           </p>
         </div>
-        <button 
+        <button
+          onClick={() => handleOpenModal()}
           className="flex items-center gap-2 bg-[#00875A] hover:bg-[#006B47] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
         >
           <Plus size={18} />
@@ -163,9 +250,14 @@ export default function InvoicesContent() {
                     <div className="text-[14px] font-bold text-gray-900">{fCHF(doc.total || 0)}</div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button onClick={() => handleDelete(doc.id)} className="p-1.5 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-md transition-all">
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => handleOpenModal(doc)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-all">
+                        <Edit2 size={16} />
+                      </button>
+                      <button onClick={() => handleDelete(doc.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -173,6 +265,121 @@ export default function InvoicesContent() {
           </tbody>
         </table>
       </div>
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <h2 className="font-bold text-gray-900">
+                {editingDoc ? `${typeLabels[typeFilter].slice(0, -1)} bearbeiten` : `Neue ${typeFilter === 'invoice' ? 'Rechnung' : typeFilter === 'offer' ? 'Offerte' : 'Auftrag'}`}
+              </h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Nummer *</label>
+                  <input
+                    required
+                    value={formData.number}
+                    onChange={e => setFormData({...formData, number: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={e => setFormData({...formData, status: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                  >
+                    {typeFilter === 'invoice' ? (
+                      <>
+                        <option value="entwurf">Entwurf</option>
+                        <option value="offen">Offen</option>
+                        <option value="versendet">Versendet</option>
+                        <option value="bezahlt">Bezahlt</option>
+                        <option value="storniert">Storniert</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="entwurf">Entwurf</option>
+                        <option value="versendet">Versendet</option>
+                        <option value="angenommen">Angenommen</option>
+                        <option value="abgelehnt">Abgelehnt</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Kontakt</label>
+                  <select
+                    value={formData.contact_id}
+                    onChange={e => setFormData({...formData, contact_id: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                  >
+                    <option value="">– Keiner –</option>
+                    {contacts.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Datum *</label>
+                  <input
+                    required
+                    type="date"
+                    value={formData.date}
+                    onChange={e => setFormData({...formData, date: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Fällig am</label>
+                  <input
+                    type="date"
+                    value={formData.due_date}
+                    onChange={e => setFormData({...formData, due_date: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Betrag (Total) *</label>
+                  <input
+                    required
+                    type="number"
+                    step="0.05"
+                    min="0"
+                    value={formData.total}
+                    onChange={e => setFormData({...formData, total: Number(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Notizen</label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={e => setFormData({...formData, notes: e.target.value})}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                    placeholder="Interne Notizen..."
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors">
+                  Abbrechen
+                </button>
+                <button type="submit" className="px-6 py-2 bg-[#00875A] hover:bg-[#006B47] text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
+                  Speichern
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

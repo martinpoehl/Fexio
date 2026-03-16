@@ -40,10 +40,10 @@ export default function JournalContent() {
     }
   }
 
-  const filteredEntries = entries.filter(e => 
+  const filteredEntries = entries.filter(e =>
     e.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.debit_account.includes(searchTerm) ||
-    e.credit_account.includes(searchTerm)
+    e.debit_account.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.credit_account.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const fCHF = (n: number) => new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF' }).format(n)

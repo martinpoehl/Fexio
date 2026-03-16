@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { Plus, Search, Edit2, Trash2, Receipt, Calendar, User, Tag } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, Receipt, Calendar, User, Tag, X } from 'lucide-react'
 
 const ACCOUNTS = [
   { id: '6700', label: '6700 - Sonstiger Betriebsaufwand' },
@@ -202,9 +202,6 @@ export default function ExpensesContent() {
                     <div className="text-[13px] font-medium text-gray-900 flex items-center gap-2">
                       <Calendar size={13} className="text-gray-400" /> {fD(expense.date)}
                     </div>
-                    <div className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
-                      <Receipt size={10} /> Beleg vorhanden
-                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-[13px] font-semibold text-gray-900">{expense.description}</div>
@@ -255,7 +252,7 @@ export default function ExpensesContent() {
                 {editingExpense ? 'Ausgabe bearbeiten' : 'Neue Ausgabe'}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                <Plus className="rotate-45" size={24} />
+                <X size={20} />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6">
@@ -286,6 +283,7 @@ export default function ExpensesContent() {
                     required
                     type="number"
                     step="0.05"
+                    min="0"
                     value={formData.amount}
                     onChange={e => setFormData({...formData, amount: Number(e.target.value)})}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"

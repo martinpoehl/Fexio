@@ -67,6 +67,16 @@ export default function SettingsContent() {
       const file = e.target.files?.[0]
       if (!file) return
 
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp']
+      if (!allowedTypes.includes(file.type)) {
+        alert('Nur JPG, PNG, SVG oder WebP erlaubt.')
+        return
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Datei zu gross. Maximal 2 MB erlaubt.')
+        return
+      }
+
       setUploading(true)
       const fileExt = file.name.split('.').pop()
       const fileName = `${Math.random()}.${fileExt}`

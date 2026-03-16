@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { Plus, Search, Edit2, Trash2, Briefcase, User, Target, Clock } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, Briefcase, User, Target, Clock, X } from 'lucide-react'
 
 export default function ProjectsContent() {
   const [projects, setProjects] = useState<any[]>([])
@@ -225,7 +225,7 @@ export default function ProjectsContent() {
                 {editingProject ? 'Projekt bearbeiten' : 'Neues Projekt'}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                <Plus className="rotate-45" size={24} />
+                <X size={20} />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6">
@@ -256,8 +256,9 @@ export default function ProjectsContent() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Stundensatz</label>
-                    <input 
+                    <input
                       type="number"
+                      min="0"
                       value={formData.hourly_rate}
                       onChange={e => setFormData({...formData, hourly_rate: Number(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
@@ -265,8 +266,9 @@ export default function ProjectsContent() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Budget (Betrag)</label>
-                    <input 
+                    <input
                       type="number"
+                      min="0"
                       value={formData.budget}
                       onChange={e => setFormData({...formData, budget: Number(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"

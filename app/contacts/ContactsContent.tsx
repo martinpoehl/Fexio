@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { Plus, Search, MoreHorizontal, Edit2, Trash2, Mail, Phone, Building2 } from 'lucide-react'
+import { Plus, Search, MoreHorizontal, Edit2, Trash2, Mail, Phone, Building2, X } from 'lucide-react'
 
 export default function ContactsContent() {
   const [contacts, setContacts] = useState<any[]>([])
@@ -267,7 +267,7 @@ export default function ContactsContent() {
                 {editingContact ? 'Kontakt bearbeiten' : 'Neuer Kontakt'}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                <Plus className="rotate-45" size={24} />
+                <X size={20} />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6">

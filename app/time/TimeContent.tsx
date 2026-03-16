@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { Plus, Search, Edit2, Trash2, Clock, Calendar, Briefcase, User, CheckCircle2, XCircle } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, Clock, Calendar, Briefcase, User, CheckCircle2, XCircle, X } from 'lucide-react'
 
 export default function TimeContent() {
   const [entries, setEntries] = useState<any[]>([])
@@ -259,7 +259,7 @@ export default function TimeContent() {
                 {editingEntry ? 'Eintrag bearbeiten' : 'Zeit erfassen'}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                <Plus className="rotate-45" size={24} />
+                <X size={20} />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6">
@@ -286,8 +286,9 @@ export default function TimeContent() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Dauer (Minuten)</label>
-                    <input 
+                    <input
                       type="number"
+                      min="0"
                       value={formData.duration_minutes}
                       onChange={e => {
                         const val = Number(e.target.value)
