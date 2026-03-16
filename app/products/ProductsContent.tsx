@@ -5,15 +5,18 @@ import { createClient } from '@/lib/supabase-browser'
 import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { Plus, Search, Edit2, Trash2, Package, Tag, Info, X } from 'lucide-react'
 
+type ActiveFilter = 'all' | 'active' | 'inactive'
+
 export default function ProductsContent() {
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('active')
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<any>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
-  
+
   // Form state
   const [formData, setFormData] = useState({
     article_nr: '',
@@ -121,12 +124,26 @@ export default function ProductsContent() {
     }
   }
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.article_nr && p.article_nr.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  const filteredProducts = products.filter(p => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.article_nr && p.article_nr.toLowerCase().includes(searchTerm.toLowerCase()))
+
+    const matchesActive =
+      activeFilter === 'all' ||
+      (activeFilter === 'active' && p.active !== false) ||
+      (activeFilter === 'inactive' && p.active === false)
+
+    return matchesSearch && matchesActive
+  })
 
   const fCHF = (n: number) => new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF' }).format(n)
+
+  const filterButtons: { key: ActiveFilter; label: string }[] = [
+    { key: 'all', label: 'Alle' },
+    { key: 'active', label: 'Aktiv' },
+    { key: 'inactive', label: 'Inaktiv' },
+  ]
 
   return (
     <div className="space-y-6">
@@ -135,7 +152,7 @@ export default function ProductsContent() {
           <h1 className="text-[22px] font-bold text-gray-900">Produkte</h1>
           <p className="text-gray-400 text-sm mt-1">Verwalte deine Artikel und Dienstleistungen</p>
         </div>
-        <button 
+        <button
           onClick={() => handleOpenModal()}
           className="flex items-center gap-2 bg-[#00875A] hover:bg-[#006B47] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
         >
@@ -144,16 +161,32 @@ export default function ProductsContent() {
         </button>
       </div>
 
-      <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <div className="flex items-center gap-3 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input 
+          <input
             type="text"
             placeholder="Suchen nach Name oder Artikel-Nr..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
           />
+        </div>
+        {/* Active/Inactive filter toggle */}
+        <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-0.5 shrink-0">
+          {filterButtons.map(btn => (
+            <button
+              key={btn.key}
+              onClick={() => setActiveFilter(btn.key)}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                activeFilter === btn.key
+                  ? 'bg-white text-gray-800 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {btn.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -166,17 +199,18 @@ export default function ProductsContent() {
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Preis</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Einheit</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">MwSt</th>
+              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Aktionen</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
+                <td colSpan={7} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
               </tr>
             ) : filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Produkte gefunden</td>
+                <td colSpan={7} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Produkte gefunden</td>
               </tr>
             ) : (
               filteredProducts.map(product => (
@@ -201,15 +235,27 @@ export default function ProductsContent() {
                   <td className="px-6 py-4 text-[13px] text-gray-600">
                     {product.tax_rate}%
                   </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`inline-block w-2 h-2 rounded-full ${
+                          product.active !== false ? 'bg-green-500' : 'bg-gray-300'
+                        }`}
+                      />
+                      <span className={`text-[12px] ${product.active !== false ? 'text-green-700' : 'text-gray-400'}`}>
+                        {product.active !== false ? 'Aktiv' : 'Inaktiv'}
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button 
+                      <button
                         onClick={() => handleOpenModal(product)}
                         className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
                       >
                         <Edit2 size={16} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(product.id)}
                         className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                       >
@@ -240,7 +286,7 @@ export default function ProductsContent() {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="col-span-2">
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Name *</label>
-                  <input 
+                  <input
                     required
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
@@ -250,7 +296,7 @@ export default function ProductsContent() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Artikel-Nr</label>
-                  <input 
+                  <input
                     value={formData.article_nr}
                     onChange={e => setFormData({...formData, article_nr: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
@@ -259,7 +305,7 @@ export default function ProductsContent() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Einheit</label>
-                  <input 
+                  <input
                     value={formData.unit}
                     onChange={e => setFormData({...formData, unit: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
@@ -268,7 +314,7 @@ export default function ProductsContent() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Preis (Netto) *</label>
-                  <input 
+                  <input
                     required
                     type="number"
                     step="0.05"
@@ -280,7 +326,7 @@ export default function ProductsContent() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">MwSt-Satz (%)</label>
-                  <select 
+                  <select
                     value={formData.tax_rate}
                     onChange={e => setFormData({...formData, tax_rate: Number(e.target.value)})}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
@@ -293,13 +339,36 @@ export default function ProductsContent() {
                 </div>
                 <div className="col-span-2">
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Beschreibung</label>
-                  <textarea 
+                  <textarea
                     value={formData.description}
                     onChange={e => setFormData({...formData, description: e.target.value})}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                     placeholder="Details zum Produkt..."
                   />
+                </div>
+                {/* Active toggle */}
+                <div className="col-span-2">
+                  <label className="flex items-center gap-3 cursor-pointer select-none">
+                    <div
+                      onClick={() => setFormData(f => ({ ...f, active: !f.active }))}
+                      className={`relative w-10 h-6 rounded-full transition-colors ${
+                        formData.active ? 'bg-[#00875A]' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                          formData.active ? 'translate-x-4' : 'translate-x-0'
+                        }`}
+                      />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-700">
+                      Aktiv
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {formData.active ? 'Produkt ist aktiv und in Rechnungen verfügbar' : 'Produkt ist deaktiviert'}
+                    </span>
+                  </label>
                 </div>
               </div>
               {saveError && <p className="text-red-600 text-xs mb-3">{saveError}</p>}

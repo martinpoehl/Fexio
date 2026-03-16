@@ -1,9 +1,43 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
-import { Plus, Search, Edit2, Trash2, Clock, Calendar, Briefcase, User, CheckCircle2, XCircle, X } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, Clock, Calendar, Briefcase, User, CheckCircle2, XCircle, X, Play, Square } from 'lucide-react'
+
+const TIMER_KEY = 'fexio_timer'
+
+interface TimerState {
+  startTime: number // unix ms
+  description: string
+  project_id: string
+}
+
+function loadTimer(): TimerState | null {
+  try {
+    const raw = localStorage.getItem(TIMER_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as TimerState
+  } catch {
+    return null
+  }
+}
+
+function saveTimer(state: TimerState) {
+  localStorage.setItem(TIMER_KEY, JSON.stringify(state))
+}
+
+function clearTimer() {
+  localStorage.removeItem(TIMER_KEY)
+}
+
+function fHMS(ms: number) {
+  const totalSec = Math.floor(ms / 1000)
+  const h = Math.floor(totalSec / 3600)
+  const m = Math.floor((totalSec % 3600) / 60)
+  const s = totalSec % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
 
 export default function TimeContent() {
   const [entries, setEntries] = useState<any[]>([])
@@ -14,12 +48,22 @@ export default function TimeContent() {
   const [editingEntry, setEditingEntry] = useState<any>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
-  
+
+  // Timer state
+  const [timerRunning, setTimerRunning] = useState(false)
+  const [timerStart, setTimerStart] = useState<number | null>(null)
+  const [timerDesc, setTimerDesc] = useState('')
+  const [timerProject, setTimerProject] = useState('')
+  const [elapsed, setElapsed] = useState(0)
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
   // Form state
   const [formData, setFormData] = useState({
     description: '',
     date: new Date().toISOString().split('T')[0],
     duration_minutes: 0,
+    start_time: '',
+    end_time: '',
     project_id: '',
     billable: true,
     hourly_rate: 0
@@ -27,16 +71,88 @@ export default function TimeContent() {
 
   const supabase = createClient()
 
+  // Load persisted timer on mount
   useEffect(() => {
+    const saved = loadTimer()
+    if (saved) {
+      setTimerRunning(true)
+      setTimerStart(saved.startTime)
+      setTimerDesc(saved.description)
+      setTimerProject(saved.project_id)
+      setElapsed(Date.now() - saved.startTime)
+    }
     fetchData()
   }, [])
+
+  // Tick interval
+  useEffect(() => {
+    if (timerRunning && timerStart !== null) {
+      tickRef.current = setInterval(() => {
+        setElapsed(Date.now() - timerStart)
+      }, 1000)
+    } else {
+      if (tickRef.current) clearInterval(tickRef.current)
+    }
+    return () => {
+      if (tickRef.current) clearInterval(tickRef.current)
+    }
+  }, [timerRunning, timerStart])
+
+  function handleStartTimer() {
+    const now = Date.now()
+    setTimerStart(now)
+    setTimerRunning(true)
+    setElapsed(0)
+    saveTimer({ startTime: now, description: timerDesc, project_id: timerProject })
+  }
+
+  function handleStopTimer() {
+    if (!timerStart) return
+    const durationMs = Date.now() - timerStart
+    const durationMinutes = Math.max(1, Math.round(durationMs / 60000))
+    const startISO = new Date(timerStart)
+    const endISO = new Date()
+
+    // Pre-fill form with timer data
+    setEditingEntry(null)
+    setFormData({
+      description: timerDesc,
+      date: startISO.toISOString().split('T')[0],
+      duration_minutes: durationMinutes,
+      start_time: startISO.toTimeString().slice(0, 5),
+      end_time: endISO.toTimeString().slice(0, 5),
+      project_id: timerProject,
+      billable: true,
+      hourly_rate: (() => {
+        const proj = projects.find(p => p.id === timerProject)
+        return proj ? Number(proj.hourly_rate) : 0
+      })()
+    })
+
+    // Stop timer
+    setTimerRunning(false)
+    setTimerStart(null)
+    setElapsed(0)
+    setTimerDesc('')
+    setTimerProject('')
+    clearTimer()
+
+    setSaveError('')
+    setShowModal(true)
+  }
+
+  // Keep localStorage in sync when description/project change while running
+  useEffect(() => {
+    if (timerRunning && timerStart !== null) {
+      saveTimer({ startTime: timerStart, description: timerDesc, project_id: timerProject })
+    }
+  }, [timerDesc, timerProject])
 
   async function fetchData() {
     try {
       setLoading(true)
       const companyId = await getOrCreateCompanyId(supabase)
 
-      // Fetch entries with project name
       const { data: entriesData, error: entErr } = await supabase
         .from('time_entries')
         .select('*, projects(name, hourly_rate)')
@@ -46,14 +162,13 @@ export default function TimeContent() {
       if (entErr) throw entErr
       setEntries(entriesData || [])
 
-      // Fetch projects for dropdown
       const { data: projectsData } = await supabase
         .from('projects')
         .select('id, name, hourly_rate')
         .eq('company_id', companyId)
         .eq('status', 'aktiv')
         .order('name')
-      
+
       setProjects(projectsData || [])
     } catch (err) {
       console.error('Error fetching data:', err)
@@ -69,6 +184,8 @@ export default function TimeContent() {
         description: entry.description,
         date: entry.date || new Date().toISOString().split('T')[0],
         duration_minutes: entry.duration_minutes || 0,
+        start_time: entry.start_time ? entry.start_time.slice(0, 5) : '',
+        end_time: entry.end_time ? entry.end_time.slice(0, 5) : '',
         project_id: entry.project_id || '',
         billable: entry.billable !== false,
         hourly_rate: Number(entry.hourly_rate) || 0
@@ -79,6 +196,8 @@ export default function TimeContent() {
         description: '',
         date: new Date().toISOString().split('T')[0],
         duration_minutes: 0,
+        start_time: '',
+        end_time: '',
         project_id: '',
         billable: true,
         hourly_rate: 0
@@ -95,8 +214,10 @@ export default function TimeContent() {
     try {
       const companyId = await getOrCreateCompanyId(supabase)
 
-      const payload = { ...formData, company_id: companyId }
-      if (payload.project_id === '') delete (payload as any).project_id
+      const payload: any = { ...formData, company_id: companyId }
+      if (payload.project_id === '') delete payload.project_id
+      if (!payload.start_time) delete payload.start_time
+      if (!payload.end_time) delete payload.end_time
 
       if (editingEntry) {
         const { error } = await supabase
@@ -133,7 +254,7 @@ export default function TimeContent() {
     }
   }
 
-  const filteredEntries = entries.filter(e => 
+  const filteredEntries = entries.filter(e =>
     e.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (e.projects?.name && e.projects.name.toLowerCase().includes(searchTerm.toLowerCase()))
   )
@@ -152,19 +273,90 @@ export default function TimeContent() {
           <h1 className="text-[22px] font-bold text-gray-900">Zeiterfassung</h1>
           <p className="text-gray-400 text-sm mt-1">Erfasse deine Arbeitszeiten auf Projekten</p>
         </div>
-        <button 
+        <button
           onClick={() => handleOpenModal()}
           className="flex items-center gap-2 bg-[#00875A] hover:bg-[#006B47] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
         >
           <Plus size={18} />
-          Zeit erfassen
+          Manuell erfassen
         </button>
       </div>
 
+      {/* Live Timer Card */}
+      <div className={`rounded-xl border-2 shadow-sm transition-all ${timerRunning ? 'border-[#00875A] bg-green-50/60' : 'border-gray-200 bg-white'}`}>
+        <div className="p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            {/* Timer display */}
+            <div className="flex items-center gap-4 flex-1">
+              <div className={`flex items-center justify-center w-12 h-12 rounded-full ${timerRunning ? 'bg-[#00875A]' : 'bg-gray-100'}`}>
+                <Clock size={22} className={timerRunning ? 'text-white' : 'text-gray-400'} />
+              </div>
+              <div>
+                <div className={`text-3xl font-mono font-bold tabular-nums tracking-tight ${timerRunning ? 'text-[#00875A]' : 'text-gray-300'}`}>
+                  {fHMS(elapsed)}
+                </div>
+                <div className="text-[11px] text-gray-400 mt-0.5">
+                  {timerRunning ? 'Timer läuft...' : 'Timer gestoppt'}
+                </div>
+              </div>
+            </div>
+
+            {/* Start / Stop button */}
+            {!timerRunning ? (
+              <button
+                onClick={handleStartTimer}
+                className="flex items-center gap-2 bg-[#00875A] hover:bg-[#006B47] text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+              >
+                <Play size={16} />
+                Starten
+              </button>
+            ) : (
+              <button
+                onClick={handleStopTimer}
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+              >
+                <Square size={16} />
+                Stoppen
+              </button>
+            )}
+          </div>
+
+          {/* Inline inputs while timer is running */}
+          {timerRunning && (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-semibold text-gray-500 uppercase mb-1">Woran arbeitest du?</label>
+                <input
+                  type="text"
+                  value={timerDesc}
+                  onChange={e => setTimerDesc(e.target.value)}
+                  placeholder="Beschreibung..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-gray-500 uppercase mb-1">Projekt</label>
+                <select
+                  value={timerProject}
+                  onChange={e => setTimerProject(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 bg-white"
+                >
+                  <option value="">– Keines / Intern –</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Search */}
       <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input 
+          <input
             type="text"
             placeholder="Suchen nach Beschreibung oder Projekt..."
             value={searchTerm}
@@ -174,12 +366,14 @@ export default function TimeContent() {
         </div>
       </div>
 
+      {/* Entries table */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Datum</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Beschreibung / Projekt</th>
+              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Zeitraum</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Dauer</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Verrechenbar</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Aktionen</th>
@@ -188,11 +382,11 @@ export default function TimeContent() {
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
+                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
               </tr>
             ) : filteredEntries.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Einträge gefunden</td>
+                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Einträge gefunden</td>
               </tr>
             ) : (
               filteredEntries.map(entry => (
@@ -207,6 +401,17 @@ export default function TimeContent() {
                     <div className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
                       <Briefcase size={10} /> {entry.projects?.name || 'Privat / Intern'}
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {entry.start_time || entry.end_time ? (
+                      <div className="text-[12px] text-gray-500 font-mono">
+                        {entry.start_time ? entry.start_time.slice(0, 5) : '--:--'}
+                        {' – '}
+                        {entry.end_time ? entry.end_time.slice(0, 5) : '--:--'}
+                      </div>
+                    ) : (
+                      <span className="text-[11px] text-gray-300">–</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-[13px] font-bold text-gray-900 flex items-center gap-2">
@@ -227,13 +432,13 @@ export default function TimeContent() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button 
+                      <button
                         onClick={() => handleOpenModal(entry)}
                         className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
                       >
                         <Edit2 size={16} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(entry.id)}
                         className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                       >
@@ -264,7 +469,7 @@ export default function TimeContent() {
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Beschreibung *</label>
-                  <input 
+                  <input
                     required
                     value={formData.description}
                     onChange={e => setFormData({...formData, description: e.target.value})}
@@ -275,7 +480,7 @@ export default function TimeContent() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Datum</label>
-                    <input 
+                    <input
                       type="date"
                       value={formData.date}
                       onChange={e => setFormData({...formData, date: e.target.value})}
@@ -288,24 +493,41 @@ export default function TimeContent() {
                       type="number"
                       min="0"
                       value={formData.duration_minutes}
-                      onChange={e => {
-                        const val = Number(e.target.value)
-                        setFormData({...formData, duration_minutes: val})
-                      }}
+                      onChange={e => setFormData({...formData, duration_minutes: Number(e.target.value)})}
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                       placeholder="z.B. 60"
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Startzeit (optional)</label>
+                    <input
+                      type="time"
+                      value={formData.start_time}
+                      onChange={e => setFormData({...formData, start_time: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Endzeit (optional)</label>
+                    <input
+                      type="time"
+                      value={formData.end_time}
+                      onChange={e => setFormData({...formData, end_time: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                    />
+                  </div>
+                </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Projekt</label>
-                  <select 
+                  <select
                     value={formData.project_id}
                     onChange={e => {
                       const projId = e.target.value
                       const proj = projects.find(p => p.id === projId)
                       setFormData({
-                        ...formData, 
+                        ...formData,
                         project_id: projId,
                         hourly_rate: proj ? Number(proj.hourly_rate) : 0
                       })
@@ -319,7 +541,7 @@ export default function TimeContent() {
                   </select>
                 </div>
                 <div className="flex items-center gap-3 py-2">
-                  <input 
+                  <input
                     type="checkbox"
                     id="billable"
                     checked={formData.billable}
