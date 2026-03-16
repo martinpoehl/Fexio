@@ -268,7 +268,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <main
           ref={mainRef}
-          className="flex-1 overflow-y-auto bg-gray-50"
+          className="flex-1 overflow-y-auto bg-gray-50 overscroll-y-contain"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
