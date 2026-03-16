@@ -15,6 +15,9 @@ CREATE TABLE IF NOT EXISTS public.bank_transactions (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Add paid_at to documents (needed for reconciliation)
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+
 -- RLS
 ALTER TABLE public.bank_transactions ENABLE ROW LEVEL SECURITY;
 
