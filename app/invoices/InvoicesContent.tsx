@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { useSearchParams } from 'next/navigation'
-import { Plus, Search, FileText, User, Calendar, Trash2, X, Edit2, Package } from 'lucide-react'
+import { Plus, Search, FileText, User, Calendar, Trash2, X, Edit2, Package, FileDown, Mail } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,6 +69,14 @@ export default function InvoicesContent() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
 
+  // ─── Email modal state ───────────────────────────────────────────────────────
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailDoc, setEmailDoc] = useState<any>(null)
+  const [emailForm, setEmailForm] = useState({ to: '', subject: '', message: '' })
+  const [emailSending, setEmailSending] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
+  const [emailError, setEmailError] = useState('')
+
   const supabase = createClient()
 
   // ─── Fetch ──────────────────────────────────────────────────────────────────
@@ -87,7 +95,7 @@ export default function InvoicesContent() {
           .order('date', { ascending: false }),
         supabase
           .from('contacts')
-          .select('id, name, first_name, last_name, firm')
+          .select('id, name, first_name, last_name, firm, email')
           .eq('company_id', companyId)
           .order('last_name'),
         supabase
@@ -345,6 +353,71 @@ export default function InvoicesContent() {
     }
   }
 
+  // ─── Email ───────────────────────────────────────────────────────────────────
+
+  const handleOpenEmailModal = async (doc: any) => {
+    setEmailError('')
+    setEmailSent(false)
+    setEmailDoc(doc)
+
+    // Try to get contact email
+    let contactEmail = ''
+    if (doc.contact_id) {
+      const contact = contacts.find((c: any) => c.id === doc.contact_id)
+      contactEmail = contact?.email || ''
+    }
+
+    const companyId = await getOrCreateCompanyId(supabase)
+    const { data: company } = await supabase
+      .from('companies')
+      .select('name')
+      .eq('id', companyId)
+      .single()
+    const companyName = company?.name || 'Unser Unternehmen'
+
+    const typeLabelsEmail: Record<string, string> = {
+      invoice: 'Rechnung',
+      offer: 'Offerte',
+      order: 'Auftrag',
+    }
+    const docLabel = typeLabelsEmail[doc.type] || 'Dokument'
+
+    setEmailForm({
+      to: contactEmail,
+      subject: `${docLabel} ${doc.number} von ${companyName}`,
+      message: `Sehr geehrte Damen und Herren,\n\nIm Anhang finden Sie die ${docLabel} ${doc.number}.\n\nBei Fragen stehen wir Ihnen gerne zur Verfügung.\n\nFreundliche Grüsse\n${companyName}`,
+    })
+    setShowEmailModal(true)
+  }
+
+  const handleSendEmail = async () => {
+    if (!emailForm.to || !emailForm.subject) return
+    setEmailSending(true)
+    setEmailError('')
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documentId: emailDoc.id,
+          recipientEmail: emailForm.to,
+          subject: emailForm.subject,
+          message: emailForm.message,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        setEmailError(data.error || 'Fehler beim Senden.')
+      } else {
+        setEmailSent(true)
+      }
+    } catch (err: any) {
+      setEmailError(err?.message || 'Netzwerkfehler.')
+    } finally {
+      setEmailSending(false)
+    }
+  }
+
   // ─── Derived state ────────────────────────────────────────────────────────────
 
   const filteredDocs = documents.filter(
@@ -469,6 +542,22 @@ export default function InvoicesContent() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
+                      <a
+                        href={`/api/pdf?documentId=${doc.id}`}
+                        target="_blank"
+                        download
+                        className="p-1.5 text-gray-400 hover:text-[#00875A] hover:bg-green-50 rounded-md transition-all"
+                        title="PDF herunterladen"
+                      >
+                        <FileDown size={16} />
+                      </a>
+                      <button
+                        onClick={() => handleOpenEmailModal(doc)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all"
+                        title="Per E-Mail senden"
+                      >
+                        <Mail size={16} />
+                      </button>
                       <button
                         onClick={() => handleOpenModal(doc)}
                         className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-all"
@@ -489,6 +578,118 @@ export default function InvoicesContent() {
           </tbody>
         </table>
       </div>
+
+      {/* ─── Email Modal ───────────────────────────────────────────────────────── */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <Mail size={18} className="text-blue-500" />
+                <h2 className="font-bold text-gray-900">
+                  {emailDoc
+                    ? `${emailDoc.type === 'invoice' ? 'Rechnung' : emailDoc.type === 'offer' ? 'Offerte' : 'Auftrag'} senden`
+                    : 'E-Mail senden'}
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowEmailModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {emailSent ? (
+                <div className="flex flex-col items-center gap-3 py-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                    <Mail size={22} className="text-green-600" />
+                  </div>
+                  <p className="font-semibold text-gray-900">E-Mail erfolgreich gesendet!</p>
+                  <p className="text-sm text-gray-500">Die E-Mail wurde an {emailForm.to} verschickt.</p>
+                  <button
+                    onClick={() => setShowEmailModal(false)}
+                    className="mt-2 px-5 py-2 bg-[#00875A] hover:bg-[#006B47] text-white rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    Schliessen
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* To */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">
+                      An *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={emailForm.to}
+                      onChange={e => setEmailForm({ ...emailForm, to: e.target.value })}
+                      placeholder="empfaenger@beispiel.ch"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                    />
+                  </div>
+
+                  {/* Subject */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">
+                      Betreff *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={emailForm.subject}
+                      onChange={e => setEmailForm({ ...emailForm, subject: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                    />
+                  </div>
+
+                  {/* Message */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">
+                      Nachricht
+                    </label>
+                    <textarea
+                      value={emailForm.message}
+                      onChange={e => setEmailForm({ ...emailForm, message: e.target.value })}
+                      rows={6}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all resize-none"
+                    />
+                  </div>
+
+                  {emailError && (
+                    <p className="text-red-600 text-xs bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                      {emailError}
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowEmailModal(false)}
+                      className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+                    >
+                      Abbrechen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSendEmail}
+                      disabled={emailSending || !emailForm.to || !emailForm.subject}
+                      className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50"
+                    >
+                      <Mail size={15} />
+                      {emailSending ? 'Sendet...' : 'Senden'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ─── Modal ─────────────────────────────────────────────────────────────── */}
       {showModal && (

@@ -32,6 +32,7 @@ const navItems = [
       { href: '/buchhaltung', label: 'Journal' },
       { href: '/buchhaltung/bilanz', label: 'Bilanz & ER' },
       { href: '/buchhaltung/mwst', label: 'MwSt-Abrechnung' },
+      { href: '/bank', label: 'Bankabgleich' },
     ]
   },
   { href: '/settings', label: 'Einstellungen', icon: 'settings' },
