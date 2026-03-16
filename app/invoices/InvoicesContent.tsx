@@ -929,14 +929,18 @@ export default function InvoicesContent() {
                       </div>
 
                       {/* Quantity */}
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={line.quantity}
-                        onChange={e => updateLine(idx, { quantity: Number(e.target.value) })}
-                        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
-                      />
+                      <div className="flex items-center border border-gray-200 rounded-md overflow-hidden">
+                        <button type="button" onClick={() => updateLine(idx, { quantity: Math.max(0, line.quantity - 1) })} className="px-2 py-1.5 text-gray-500 hover:bg-gray-100 font-bold leading-none transition-colors">−</button>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={line.quantity}
+                          onChange={e => updateLine(idx, { quantity: Math.max(0, Number(e.target.value)) })}
+                          className="w-full text-center py-1.5 text-sm focus:outline-none bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <button type="button" onClick={() => updateLine(idx, { quantity: line.quantity + 1 })} className="px-2 py-1.5 text-gray-500 hover:bg-gray-100 font-bold leading-none transition-colors">+</button>
+                      </div>
 
                       {/* Unit */}
                       <input
