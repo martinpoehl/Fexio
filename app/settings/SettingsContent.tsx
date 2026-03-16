@@ -34,7 +34,7 @@ export default function SettingsContent() {
   })
 
   // Password change state
-  const [pwForm, setPwForm] = useState({ newPw: '', confirmPw: '' })
+  const [pwForm, setPwForm] = useState({ currentPw: '', newPw: '', confirmPw: '' })
   const [pwSaving, setPwSaving] = useState(false)
   const [pwError, setPwError] = useState('')
   const [pwSaved, setPwSaved] = useState(false)
@@ -182,13 +182,22 @@ export default function SettingsContent() {
     e.preventDefault()
     setPwError('')
     setPwSaved(false)
-    if (pwForm.newPw.length < 8) { setPwError('Passwort muss mindestens 8 Zeichen lang sein.'); return }
-    if (pwForm.newPw !== pwForm.confirmPw) { setPwError('Passwörter stimmen nicht überein.'); return }
+    if (!pwForm.currentPw) { setPwError('Bitte aktuelles Passwort eingeben.'); return }
+    if (pwForm.newPw.length < 8) { setPwError('Neues Passwort muss mindestens 8 Zeichen lang sein.'); return }
+    if (pwForm.newPw !== pwForm.confirmPw) { setPwError('Neue Passwörter stimmen nicht überein.'); return }
     setPwSaving(true)
     try {
+      // Re-authenticate with current password first
+      const { data: { user } } = await supabase.auth.getUser()
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: pwForm.currentPw,
+      })
+      if (signInError) throw new Error('Aktuelles Passwort ist falsch.')
+
       const { error } = await supabase.auth.updateUser({ password: pwForm.newPw })
       if (error) throw error
-      setPwForm({ newPw: '', confirmPw: '' })
+      setPwForm({ currentPw: '', newPw: '', confirmPw: '' })
       setPwSaved(true)
       setTimeout(() => setPwSaved(false), 3000)
     } catch (err: any) {
@@ -431,6 +440,17 @@ export default function SettingsContent() {
           </h2>
         </div>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Aktuelles Passwort</label>
+            <input
+              type="password"
+              value={pwForm.currentPw}
+              onChange={e => setPwForm({ ...pwForm, currentPw: e.target.value })}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+              placeholder="Aktuelles Passwort eingeben"
+              autoComplete="current-password"
+            />
+          </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Neues Passwort</label>
             <input
@@ -464,7 +484,7 @@ export default function SettingsContent() {
             </div>
             <button
               type="submit"
-              disabled={pwSaving || !pwForm.newPw || !pwForm.confirmPw}
+              disabled={pwSaving || !pwForm.currentPw || !pwForm.newPw || !pwForm.confirmPw}
               className="flex items-center gap-2 px-6 py-2.5 bg-[#00875A] hover:bg-[#006B47] text-white rounded-lg text-sm font-bold transition-all shadow-sm disabled:opacity-50"
             >
               <Lock size={16} /> {pwSaving ? 'Wird gespeichert...' : 'Passwort ändern'}
