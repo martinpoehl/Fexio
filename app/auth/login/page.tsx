@@ -119,14 +119,9 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-4">
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                Passwort
-              </label>
-              <Link href="/auth/reset" className="text-xs text-green-700 hover:underline">
-                Vergessen?
-              </Link>
-            </div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+              Passwort
+            </label>
             <input
               type="password"
               value={password}
@@ -136,6 +131,11 @@ export default function LoginPage() {
               minLength={6}
               className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition"
             />
+            <div className="mt-1.5 text-right">
+              <Link href="/auth/reset" className="text-xs text-green-700 hover:underline" tabIndex={-1}>
+                Passwort vergessen?
+              </Link>
+            </div>
           </div>
 
           <button

@@ -5,7 +5,9 @@ import { createClient } from '@/lib/supabase-browser'
 import Link from 'next/link'
 
 export default function SignupPage() {
-  const [name, setName] = useState('')
+  const [vorname, setVorname] = useState('')
+  const [nachname, setNachname] = useState('')
+  const [firma, setFirma] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
@@ -34,7 +36,7 @@ export default function SignupPage() {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
-        data: { full_name: name }
+        data: { first_name: vorname, last_name: nachname, company: firma, full_name: `${vorname} ${nachname}`.trim() }
       }
     })
 
@@ -92,16 +94,44 @@ export default function SignupPage() {
         )}
 
         <form onSubmit={handleSignup}>
+          <div className="flex gap-3 mb-4">
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Vorname
+              </label>
+              <input
+                type="text"
+                value={vorname}
+                onChange={(e) => setVorname(e.target.value)}
+                placeholder="Max"
+                required
+                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Nachname
+              </label>
+              <input
+                type="text"
+                value={nachname}
+                onChange={(e) => setNachname(e.target.value)}
+                placeholder="Muster"
+                required
+                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+              />
+            </div>
+          </div>
+
           <div className="mb-4">
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-              Name / Firmenname
+              Firma <span className="text-gray-400 font-normal normal-case">(optional)</span>
             </label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Max Muster oder Muster AG"
-              required
+              value={firma}
+              onChange={(e) => setFirma(e.target.value)}
+              placeholder="Muster AG"
               className="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
             />
           </div>
