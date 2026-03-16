@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { Building2, Mail, Phone, MapPin, CreditCard, Percent, Save, CheckCircle } from 'lucide-react'
+import { Building2, Mail, Phone, MapPin, CreditCard, Percent, Save, CheckCircle, Upload, X } from 'lucide-react'
 
 export default function SettingsContent() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [company, setCompany] = useState<any>(null)
   
@@ -20,7 +21,8 @@ export default function SettingsContent() {
     phone: '',
     iban: '',
     uid_nr: '',
-    mwst_rate: 8.1
+    mwst_rate: 8.1,
+    logo_url: ''
   })
 
   const supabase = createClient()
@@ -49,13 +51,62 @@ export default function SettingsContent() {
           phone: c.phone || '',
           iban: c.iban || '',
           uid_nr: c.uid_nr || '',
-          mwst_rate: Number(c.mwst_rate) || 8.1
+          mwst_rate: Number(c.mwst_rate) || 8.1,
+          logo_url: c.logo_url || ''
         })
       }
     } catch (err) {
       console.error('Error fetching company:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      setUploading(true)
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Math.random()}.${fileExt}`
+      const filePath = `${company.id}/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('logos')
+        .getPublicUrl(filePath)
+
+      setFormData({ ...formData, logo_url: publicUrl })
+      
+      // Auto-save logo_url to DB
+      await supabase
+        .from('companies')
+        .update({ logo_url: publicUrl })
+        .eq('id', company.id)
+
+    } catch (err) {
+      console.error('Error uploading logo:', err)
+      alert('Fehler beim Upload des Logos')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeLogo = async () => {
+    try {
+      setFormData({ ...formData, logo_url: '' })
+      await supabase
+        .from('companies')
+        .update({ logo_url: '' })
+        .eq('id', company.id)
+    } catch (err) {
+      console.error('Error removing logo:', err)
     }
   }
 
@@ -94,6 +145,48 @@ export default function SettingsContent() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Logo Section */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+            <h2 className="text-[13px] font-bold text-gray-900 flex items-center gap-2">
+              <Upload size={16} className="text-gray-400" /> Firmenlogo
+            </h2>
+          </div>
+          <div className="p-6 flex items-center gap-8">
+            <div className="relative group">
+              <div className="w-24 h-24 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
+                {formData.logo_url ? (
+                  <img src={formData.logo_url} alt="Logo" className="w-full h-full object-contain p-2" />
+                ) : (
+                  <Building2 size={32} className="text-gray-300" />
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
+              {formData.logo_url && (
+                <button 
+                  type="button"
+                  onClick={removeLogo}
+                  className="absolute -top-2 -right-2 p-1 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-semibold text-gray-900 mb-1">Logo hochladen</div>
+              <p className="text-xs text-gray-500 mb-4">PNG, JPG oder SVG. Quadratisch empfohlen.</p>
+              <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-[13px] font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer transition-all shadow-sm">
+                <Upload size={16} /> Datei wählen
+                <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+              </label>
+            </div>
+          </div>
+        </div>
+
         {/* Basic Info */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">

@@ -115,8 +115,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Company header */}
         <div className="px-4 py-4 border-b border-white/[0.08]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#00875A] rounded-md flex items-center justify-center text-white font-bold text-sm shrink-0">
-              {(company?.name || 'B').charAt(0).toUpperCase()}
+            <div className="w-8 h-8 bg-[#00875A] rounded-md flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
+              {company?.logo_url ? (
+                <img src={company.logo_url} alt="Logo" className="w-full h-full object-cover" />
+              ) : (
+                (company?.name || 'F').charAt(0).toUpperCase()
+              )}
             </div>
             <div className="min-w-0">
               <div className="text-white text-[13px] font-semibold truncate">{company?.name || 'Meine Firma'}</div>
