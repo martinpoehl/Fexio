@@ -364,15 +364,26 @@ export default function ProductsContent() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Stk. Anzahl</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={formData.stock_qty}
-                    onChange={e => setFormData({...formData, stock_qty: Number(e.target.value)})}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                    placeholder="0"
-                  />
+                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(f => ({ ...f, stock_qty: Math.max(0, f.stock_qty - 1) }))}
+                      className="px-3 py-2 text-gray-500 hover:bg-gray-100 font-bold text-lg leading-none transition-colors"
+                    >−</button>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={formData.stock_qty}
+                      onChange={e => setFormData({...formData, stock_qty: Math.max(0, Number(e.target.value))})}
+                      className="flex-1 text-center py-2 text-sm focus:outline-none bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData(f => ({ ...f, stock_qty: f.stock_qty + 1 }))}
+                      className="px-3 py-2 text-gray-500 hover:bg-gray-100 font-bold text-lg leading-none transition-colors"
+                    >+</button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Preis (Netto) *</label>
