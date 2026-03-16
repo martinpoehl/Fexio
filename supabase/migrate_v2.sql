@@ -16,7 +16,23 @@ WHERE name IS NOT NULL AND name != '' AND first_name = '';
 
 ALTER TABLE public.contacts ALTER COLUMN name DROP NOT NULL;
 
--- 3. Fix handle_new_user trigger: use 'company' metadata for company name
+-- 3. Create missing company rows for existing users (who registered before trigger was set up)
+INSERT INTO public.companies (user_id, name, email)
+SELECT
+  u.id,
+  COALESCE(
+    NULLIF(u.raw_user_meta_data->>'company', ''),
+    NULLIF(u.raw_user_meta_data->>'full_name', ''),
+    split_part(u.email, '@', 1),
+    'Meine Firma'
+  ),
+  u.email
+FROM auth.users u
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.companies c WHERE c.user_id = u.id
+);
+
+-- 4. Fix handle_new_user trigger: use 'company' metadata for company name
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
