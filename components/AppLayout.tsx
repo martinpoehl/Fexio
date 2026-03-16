@@ -231,7 +231,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile Header */}
-        <header className="lg:hidden h-auto pt-8 pb-3 bg-[#1a56db] flex items-center px-4 shrink-0">
+        <header className="lg:hidden bg-[#1a56db] flex items-center px-4 shrink-0" style={{ paddingTop: 'max(env(safe-area-inset-top), 1rem)', paddingBottom: '0.75rem' }}>
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 -ml-2 text-white/80 hover:text-white"
