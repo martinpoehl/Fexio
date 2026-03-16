@@ -362,8 +362,8 @@ export default function ProductsContent() {
                     type="number"
                     step="0.05"
                     min="0"
-                    value={formData.price}
-                    onChange={e => setFormData({...formData, price: Number(e.target.value)})}
+                    value={formData.price === 0 ? '' : formData.price}
+                    onChange={e => setFormData({...formData, price: Number(e.target.value) || 0})}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                   />
                 </div>

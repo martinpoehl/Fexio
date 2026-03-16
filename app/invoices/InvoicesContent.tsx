@@ -956,8 +956,8 @@ export default function InvoicesContent() {
                         type="number"
                         min="0"
                         step="0.05"
-                        value={line.unit_price}
-                        onChange={e => updateLine(idx, { unit_price: Number(e.target.value) })}
+                        value={line.unit_price === 0 ? '' : line.unit_price}
+                        onChange={e => updateLine(idx, { unit_price: Number(e.target.value) || 0 })}
                         className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
                       />
 
