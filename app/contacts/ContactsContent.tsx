@@ -13,7 +13,8 @@ export default function ContactsContent() {
   
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     firm: '',
     email: '',
     phone: '',
@@ -44,7 +45,7 @@ export default function ContactsContent() {
         .from('contacts')
         .select('*')
         .eq('company_id', companyId)
-        .order('name', { ascending: true })
+        .order('last_name', { ascending: true })
 
       if (error) throw error
       setContacts(data || [])
@@ -59,7 +60,8 @@ export default function ContactsContent() {
     if (contact) {
       setEditingContact(contact)
       setFormData({
-        name: contact.name,
+        first_name: contact.first_name || '',
+        last_name: contact.last_name || '',
         firm: contact.firm || '',
         email: contact.email || '',
         phone: contact.phone || '',
@@ -72,7 +74,8 @@ export default function ContactsContent() {
     } else {
       setEditingContact(null)
       setFormData({
-        name: '',
+        first_name: '',
+        last_name: '',
         firm: '',
         email: '',
         phone: '',
@@ -96,16 +99,25 @@ export default function ContactsContent() {
       if (!companies?.length) return
       const companyId = companies[0].id
 
+      // For backward compatibility or if we still have the name column NOT NULL (though migration drops it)
+      const combinedName = `${formData.first_name} ${formData.last_name}`.trim() || formData.firm || 'Unbenannter Kontakt'
+
+      const payload = {
+        ...formData,
+        company_id: companyId,
+        name: combinedName // Maintain name column for existing constraints/logic
+      }
+
       if (editingContact) {
         const { error } = await supabase
           .from('contacts')
-          .update(formData)
+          .update(payload)
           .eq('id', editingContact.id)
         if (error) throw error
       } else {
         const { error } = await supabase
           .from('contacts')
-          .insert([{ ...formData, company_id: companyId }])
+          .insert([payload])
         if (error) throw error
       }
 
@@ -130,9 +142,11 @@ export default function ContactsContent() {
   }
 
   const filteredContacts = contacts.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.first_name && c.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.last_name && c.last_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (c.firm && c.firm.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   return (
@@ -190,7 +204,9 @@ export default function ContactsContent() {
               filteredContacts.map(contact => (
                 <tr key={contact.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="text-[13px] font-semibold text-gray-900">{contact.name}</div>
+                    <div className="text-[13px] font-semibold text-gray-900">
+                      {contact.first_name || contact.last_name ? `${contact.first_name || ''} ${contact.last_name || ''}`.trim() : contact.name}
+                    </div>
                     {contact.firm && (
                       <div className="text-[11px] text-gray-500 flex items-center gap-1">
                         <Building2 size={10} /> {contact.firm}
@@ -257,13 +273,21 @@ export default function ContactsContent() {
             <form onSubmit={handleSubmit} className="p-6">
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Name *</label>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Vorname</label>
                   <input 
-                    required
-                    value={formData.name}
-                    onChange={e => setFormData({...formData, name: e.target.value})}
+                    value={formData.first_name}
+                    onChange={e => setFormData({...formData, first_name: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                    placeholder="Vorname Nachname"
+                    placeholder="Max"
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Nachname</label>
+                  <input 
+                    value={formData.last_name}
+                    onChange={e => setFormData({...formData, last_name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                    placeholder="Muster"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
