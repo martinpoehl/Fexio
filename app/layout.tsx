@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Fexio – Schweizer Business Software',
   description: 'Kostenlose bexio-Alternative für KMU, Freelancer und Startups',
+  viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
