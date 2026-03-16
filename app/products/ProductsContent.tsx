@@ -19,6 +19,7 @@ export default function ProductsContent() {
 
   // Form state
   const [formData, setFormData] = useState({
+    product_type: 'dienstleistung' as 'artikel' | 'dienstleistung',
     article_nr: '',
     name: '',
     description: '',
@@ -59,6 +60,7 @@ export default function ProductsContent() {
     if (product) {
       setEditingProduct(product)
       setFormData({
+        product_type: product.product_type || 'dienstleistung',
         article_nr: product.article_nr || '',
         name: product.name,
         description: product.description || '',
@@ -71,6 +73,7 @@ export default function ProductsContent() {
     } else {
       setEditingProduct(null)
       setFormData({
+        product_type: 'dienstleistung',
         article_nr: '',
         name: '',
         description: '',
@@ -197,6 +200,7 @@ export default function ProductsContent() {
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Typ</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Artikel / Name</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Beschreibung</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Preis</th>
@@ -210,15 +214,26 @@ export default function ProductsContent() {
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
+                <td colSpan={9} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
               </tr>
             ) : filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Produkte gefunden</td>
+                <td colSpan={9} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Produkte gefunden</td>
               </tr>
             ) : (
               filteredProducts.map(product => (
                 <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-4">
+                    {product.product_type === 'artikel' ? (
+                      <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-blue-100 text-blue-700">
+                        Artikel
+                      </span>
+                    ) : (
+                      <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-purple-100 text-purple-700">
+                        Dienstl.
+                      </span>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="text-[13px] font-semibold text-gray-900">{product.name}</div>
                     <div className="text-[11px] text-gray-400 flex items-center gap-1">
@@ -290,6 +305,34 @@ export default function ProductsContent() {
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1">
+              {/* Product type toggle */}
+              <div className="mb-5">
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Typ</label>
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden w-fit">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(f => ({ ...f, product_type: 'dienstleistung' }))}
+                    className={`px-5 py-2.5 text-sm font-semibold transition-colors ${
+                      formData.product_type === 'dienstleistung'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    Dienstleistung
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(f => ({ ...f, product_type: 'artikel' }))}
+                    className={`px-5 py-2.5 text-sm font-semibold transition-colors border-l border-gray-200 ${
+                      formData.product_type === 'artikel'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    Artikel
+                  </button>
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="col-span-2">
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Name *</label>

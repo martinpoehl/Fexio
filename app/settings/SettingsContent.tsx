@@ -18,8 +18,10 @@ export default function SettingsContent() {
     address: '',
     zip: '',
     city: '',
+    country: 'CH',
     email: '',
     phone: '',
+    website: '',
     iban: '',
     uid_nr: '',
     mwst_rate: 8.1,
@@ -58,8 +60,10 @@ export default function SettingsContent() {
           address: c.address || '',
           zip: c.zip || '',
           city: c.city || '',
+          country: c.country || 'CH',
           email: c.email || '',
           phone: c.phone || '',
+          website: c.website || '',
           iban: c.iban || '',
           uid_nr: c.uid_nr || '',
           mwst_rate: Number(c.mwst_rate) || 8.1,
@@ -249,7 +253,7 @@ export default function SettingsContent() {
           </div>
         </div>
 
-        {/* Basic Info */}
+        {/* Basic Info / Firmendaten */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
             <h2 className="text-[13px] font-bold text-gray-900 flex items-center gap-2">
@@ -259,7 +263,7 @@ export default function SettingsContent() {
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Firmenname *</label>
-              <input 
+              <input
                 required
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
@@ -268,8 +272,8 @@ export default function SettingsContent() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Adresse</label>
-              <input 
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Strasse &amp; Hausnummer</label>
+              <input
                 value={formData.address}
                 onChange={e => setFormData({...formData, address: e.target.value})}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
@@ -278,7 +282,7 @@ export default function SettingsContent() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">PLZ</label>
-              <input 
+              <input
                 value={formData.zip}
                 onChange={e => setFormData({...formData, zip: e.target.value})}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
@@ -287,27 +291,25 @@ export default function SettingsContent() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Ort</label>
-              <input 
+              <input
                 value={formData.city}
                 onChange={e => setFormData({...formData, city: e.target.value})}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
                 placeholder="Zürich"
               />
             </div>
-          </div>
-        </div>
-
-        {/* Contact & Legal */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
-            <h2 className="text-[13px] font-bold text-gray-900 flex items-center gap-2">
-              <Mail size={16} className="text-gray-400" /> Kontakt & Rechtliches
-            </h2>
-          </div>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Land</label>
+              <input
+                value={formData.country}
+                onChange={e => setFormData({...formData, country: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                placeholder="CH"
+              />
+            </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">E-Mail</label>
-              <input 
+              <input
                 type="email"
                 value={formData.email}
                 onChange={e => setFormData({...formData, email: e.target.value})}
@@ -317,7 +319,7 @@ export default function SettingsContent() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Telefon</label>
-              <input 
+              <input
                 value={formData.phone}
                 onChange={e => setFormData({...formData, phone: e.target.value})}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
@@ -325,21 +327,30 @@ export default function SettingsContent() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">IBAN</label>
-              <input 
-                value={formData.iban}
-                onChange={e => setFormData({...formData, iban: e.target.value})}
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Website</label>
+              <input
+                value={formData.website}
+                onChange={e => setFormData({...formData, website: e.target.value})}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                placeholder="CH00 0000 0000 0000 0000 0"
+                placeholder="www.meinefirma.ch"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">UID Nummer</label>
-              <input 
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">IBAN</label>
+              <input
+                value={formData.iban}
+                onChange={e => setFormData({...formData, iban: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                placeholder="CH56 0483 5012 3456 7800 9"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">UID-Nummer</label>
+              <input
                 value={formData.uid_nr}
                 onChange={e => setFormData({...formData, uid_nr: e.target.value})}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                placeholder="CHE-123.456.789 MWST"
+                placeholder="CHE-123.456.789"
               />
             </div>
           </div>

@@ -15,12 +15,14 @@ interface LineItem {
   quantity: number
   unit: string
   unit_price: number
+  discount: number     // 0-100 %
   tax_rate: number
-  total: number        // calculated: quantity * unit_price * (1 + tax_rate/100)
+  total: number        // calculated: quantity * unit_price * (1 - discount/100) * (1 + tax_rate/100)
 }
 
 interface FormData {
   number: string
+  title: string
   contact_id: string
   contact_name: string
   date: string
@@ -37,6 +39,7 @@ const emptyLine = (position: number): LineItem => ({
   quantity: 1,
   unit: 'Stk.',
   unit_price: 0,
+  discount: 0,
   tax_rate: 8.1,
   total: 0,
 })
@@ -52,11 +55,13 @@ export default function InvoicesContent() {
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('alle')
   const [showModal, setShowModal] = useState(false)
   const [editingDoc, setEditingDoc] = useState<any>(null)
 
   const [formData, setFormData] = useState<FormData>({
     number: '',
+    title: '',
     contact_id: '',
     contact_name: '',
     date: new Date().toISOString().split('T')[0],
@@ -118,6 +123,7 @@ export default function InvoicesContent() {
 
   useEffect(() => {
     fetchDocuments()
+    setStatusFilter('alle')
   }, [fetchDocuments])
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -136,12 +142,12 @@ export default function InvoicesContent() {
   }
 
   const calcLineTotal = (line: LineItem): number => {
-    const net = line.quantity * line.unit_price
+    const net = line.quantity * line.unit_price * (1 - (line.discount || 0) / 100)
     return Math.round(net * (1 + line.tax_rate / 100) * 100) / 100
   }
 
   const calcTotals = (ls: LineItem[]) => {
-    const subtotal = ls.reduce((sum, l) => sum + l.quantity * l.unit_price, 0)
+    const subtotal = ls.reduce((sum, l) => sum + l.quantity * l.unit_price * (1 - (l.discount || 0) / 100), 0)
     const total = ls.reduce((sum, l) => sum + l.total, 0)
     const tax_amount = total - subtotal
     return {
@@ -166,6 +172,22 @@ export default function InvoicesContent() {
     )
   }
 
+  // ─── Status filter tabs ──────────────────────────────────────────────────────
+
+  const invoiceStatusTabs = ['alle', 'entwurf', 'versendet', 'bezahlt', 'storniert']
+  const offerStatusTabs = ['alle', 'entwurf', 'versendet', 'akzeptiert', 'abgelehnt']
+  const statusTabs = typeFilter === 'offer' ? offerStatusTabs : invoiceStatusTabs
+
+  const statusTabLabels: Record<string, string> = {
+    alle: 'Alle',
+    entwurf: 'Entwurf',
+    versendet: 'Versendet',
+    bezahlt: 'Bezahlt',
+    storniert: 'Storniert',
+    akzeptiert: 'Akzeptiert',
+    abgelehnt: 'Abgelehnt',
+  }
+
   // ─── Modal open/close ───────────────────────────────────────────────────────
 
   const handleOpenModal = async (doc: any = null) => {
@@ -174,6 +196,7 @@ export default function InvoicesContent() {
       setEditingDoc(doc)
       setFormData({
         number: doc.number || '',
+        title: doc.title || '',
         contact_id: doc.contact_id || '',
         contact_name: doc.contact_name || doc.contacts?.name || '',
         date: doc.date || new Date().toISOString().split('T')[0],
@@ -198,6 +221,7 @@ export default function InvoicesContent() {
             quantity: Number(l.quantity) || 1,
             unit: l.unit || 'Stk.',
             unit_price: Number(l.unit_price) || 0,
+            discount: Number(l.discount) || 0,
             tax_rate: Number(l.tax_rate) ?? 8.1,
             total: Number(l.total) || 0,
           }))
@@ -211,6 +235,7 @@ export default function InvoicesContent() {
       dueDate.setDate(dueDate.getDate() + 30)
       setFormData({
         number: generateNumber(),
+        title: '',
         contact_id: '',
         contact_name: '',
         date: new Date().toISOString().split('T')[0],
@@ -319,6 +344,7 @@ export default function InvoicesContent() {
           quantity: l.quantity,
           unit: l.unit,
           unit_price: l.unit_price,
+          discount: l.discount || 0,
           tax_rate: l.tax_rate,
           total: l.total,
         }))
@@ -420,12 +446,17 @@ export default function InvoicesContent() {
 
   // ─── Derived state ────────────────────────────────────────────────────────────
 
-  const filteredDocs = documents.filter(
-    d =>
+  const filteredDocs = documents.filter(d => {
+    const matchesSearch =
       d.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (d.contact_name && d.contact_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (d.contacts?.name && d.contacts.name.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+      (d.contacts?.name && d.contacts.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (d.title && d.title.toLowerCase().includes(searchTerm.toLowerCase()))
+
+    const matchesStatus = statusFilter === 'alle' || d.status === statusFilter
+
+    return matchesSearch && matchesStatus
+  })
 
   const { subtotal, tax_amount, total } = calcTotals(lines)
 
@@ -440,9 +471,21 @@ export default function InvoicesContent() {
     offen: 'bg-amber-50 text-amber-600',
     versendet: 'bg-blue-50 text-blue-600',
     bezahlt: 'bg-green-50 text-green-700',
+    akzeptiert: 'bg-green-50 text-green-700',
     angenommen: 'bg-green-50 text-green-700',
     storniert: 'bg-red-50 text-red-600',
     abgelehnt: 'bg-red-50 text-red-600',
+  }
+
+  const statusLabels: Record<string, string> = {
+    entwurf: 'Entwurf',
+    offen: 'Offen',
+    versendet: 'Versendet',
+    bezahlt: 'Bezahlt',
+    akzeptiert: 'Akzeptiert',
+    angenommen: 'Akzeptiert',
+    storniert: 'Storniert',
+    abgelehnt: 'Abgelehnt',
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────────
@@ -471,13 +514,30 @@ export default function InvoicesContent() {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-        <div className="relative flex-1">
+      {/* Search + Status Filter Tabs */}
+      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-3">
+        {/* Status filter pills */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {statusTabs.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setStatusFilter(tab)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${
+                statusFilter === tab
+                  ? 'bg-[#00875A] text-white border-[#00875A]'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              {statusTabLabels[tab]}
+            </button>
+          ))}
+        </div>
+        {/* Search */}
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Suchen nach Nummer oder Kontakt..."
+            placeholder="Suchen nach Nummer, Titel oder Kontakt..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
@@ -487,25 +547,27 @@ export default function InvoicesContent() {
 
       {/* Table */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[700px]">
+        <table className="w-full text-left border-collapse min-w-[900px]">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Nummer</th>
+              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Titel</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Kontakt</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Datum</th>
+              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Fällig</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Betrag</th>
+              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Betrag CHF</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
+                <td colSpan={8} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
               </tr>
             ) : filteredDocs.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Dokumente gefunden</td>
+                <td colSpan={8} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Dokumente gefunden</td>
               </tr>
             ) : (
               filteredDocs.map(doc => (
@@ -513,6 +575,11 @@ export default function InvoicesContent() {
                   <td className="px-6 py-4">
                     <div className="text-[13px] font-bold text-gray-900 flex items-center gap-2">
                       <FileText size={14} className="text-gray-400" /> {doc.number}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-[13px] text-gray-600 max-w-[160px] truncate" title={doc.title}>
+                      {doc.title || '–'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -527,12 +594,17 @@ export default function InvoicesContent() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
+                    <div className="text-[13px] text-gray-600">
+                      {doc.due_date ? fD(doc.due_date) : '–'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
                     <span
                       className={`inline-block text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
-                        statusStyles[doc.status] || 'bg-gray-100'
+                        statusStyles[doc.status] || 'bg-gray-100 text-gray-600'
                       }`}
                     >
-                      {doc.status}
+                      {statusLabels[doc.status] || doc.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -719,6 +791,15 @@ export default function InvoicesContent() {
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                   />
                 </div>
+                <div className="col-span-2 sm:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Titel</label>
+                  <input
+                    value={formData.title}
+                    onChange={e => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                    placeholder="z.B. Dienstleistungen Februar 2025"
+                  />
+                </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Status</label>
                   <select
@@ -738,13 +819,13 @@ export default function InvoicesContent() {
                       <>
                         <option value="entwurf">Entwurf</option>
                         <option value="versendet">Versendet</option>
-                        <option value="angenommen">Angenommen</option>
+                        <option value="akzeptiert">Akzeptiert</option>
                         <option value="abgelehnt">Abgelehnt</option>
                       </>
                     )}
                   </select>
                 </div>
-                <div className="col-span-2 sm:col-span-1">
+                <div className="col-span-2 sm:col-span-2">
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Kontakt</label>
                   <select
                     value={formData.contact_id}
@@ -804,8 +885,8 @@ export default function InvoicesContent() {
                 </div>
 
                 {/* Column headers */}
-                <div className="hidden md:grid grid-cols-[2fr_1fr_80px_1fr_100px_90px_32px] gap-2 mb-1 px-1">
-                  {['Beschreibung', 'Menge', 'Einheit', 'Preis', 'MwSt%', 'Total', ''].map(h => (
+                <div className="hidden md:grid grid-cols-[2fr_1fr_80px_1fr_80px_100px_90px_32px] gap-2 mb-1 px-1">
+                  {['Beschreibung', 'Menge', 'Einheit', 'Preis', 'Rabatt %', 'MwSt%', 'Total', ''].map(h => (
                     <span key={h} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
                       {h}
                     </span>
@@ -816,7 +897,7 @@ export default function InvoicesContent() {
                   {lines.map((line, idx) => (
                     <div
                       key={idx}
-                      className="grid grid-cols-1 md:grid-cols-[2fr_1fr_80px_1fr_100px_90px_32px] gap-2 items-center bg-gray-50 rounded-lg p-2 border border-gray-100"
+                      className="grid grid-cols-1 md:grid-cols-[2fr_1fr_80px_1fr_80px_100px_90px_32px] gap-2 items-center bg-gray-50 rounded-lg p-2 border border-gray-100"
                     >
                       {/* Product picker + description */}
                       <div className="flex flex-col gap-1">
@@ -876,6 +957,18 @@ export default function InvoicesContent() {
                         className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
                       />
 
+                      {/* Discount */}
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={line.discount}
+                        onChange={e => updateLine(idx, { discount: Number(e.target.value) })}
+                        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
+                        placeholder="0"
+                      />
+
                       {/* Tax rate */}
                       <select
                         value={line.tax_rate}
@@ -909,7 +1002,7 @@ export default function InvoicesContent() {
 
                 {/* Totals summary */}
                 <div className="mt-4 flex justify-end">
-                  <div className="w-64 space-y-1 text-sm">
+                  <div className="w-72 space-y-1 text-sm">
                     <div className="flex justify-between text-gray-600">
                       <span>Nettobetrag</span>
                       <span>{fCHF(subtotal)}</span>
@@ -919,7 +1012,7 @@ export default function InvoicesContent() {
                       <span>{fCHF(tax_amount)}</span>
                     </div>
                     <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-1 mt-1">
-                      <span>Total</span>
+                      <span>Total CHF</span>
                       <span>{fCHF(total)}</span>
                     </div>
                   </div>
