@@ -87,13 +87,14 @@ export async function GET(request: NextRequest) {
       logoBase64,
     })
 
-    const pdfBuffer = await renderToBuffer(pdfElement)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pdfBuffer = await renderToBuffer(pdfElement as any)
 
     // ── Sanitise filename ───────────────────────────────────────────────────
     const safeNumber = (doc.number || documentId).replace(/[^a-zA-Z0-9\-_]/g, '-')
     const filename = `${safeNumber}.pdf`
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(pdfBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

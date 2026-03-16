@@ -174,7 +174,7 @@ export default function BilanzPage() {
         '6900': 'Finanzaufwand',
       }
 
-      for (const acc of allAccounts) {
+      for (const acc of Array.from(allAccounts)) {
         const debits = accountDebits[acc] || 0
         const credits = accountCredits[acc] || 0
         const netDebit = debits - credits  // positive = net debit balance
