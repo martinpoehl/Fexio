@@ -1,4 +1,4 @@
--- Migration v2: Add missing columns and fix trigger
+-- Migration v2: Add missing columns, fix trigger, setup logo storage
 -- Run this in Supabase SQL Editor
 
 -- 1. Add logo_url to companies
@@ -25,7 +25,7 @@ BEGIN
     new.id,
     COALESCE(
       NULLIF(new.raw_user_meta_data->>'company', ''),
-      new.raw_user_meta_data->>'full_name',
+      NULLIF(new.raw_user_meta_data->>'full_name', ''),
       'Meine Firma'
     ),
     new.email
@@ -34,19 +34,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 4. Storage for logos (if not already created)
-INSERT INTO storage.buckets (id, name, public) VALUES ('logos', 'logos', true) ON CONFLICT (id) DO NOTHING;
+-- 4. Create logos storage bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('logos', 'logos', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
 
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND policyname = 'Public Access'
-  ) THEN
-    CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'logos');
-  END IF;
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND policyname = 'Authenticated Upload'
-  ) THEN
-    CREATE POLICY "Authenticated Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'logos' AND auth.role() = 'authenticated');
-  END IF;
-END $$;
+-- 5. Storage policies (drop old ones first to avoid conflicts)
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated Upload" ON storage.objects;
+DROP POLICY IF EXISTS "Owner Delete" ON storage.objects;
+DROP POLICY IF EXISTS "Owner Update" ON storage.objects;
+
+CREATE POLICY "Logos Public Read" ON storage.objects
+  FOR SELECT USING (bucket_id = 'logos');
+
+CREATE POLICY "Logos Authenticated Upload" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'logos');
+
+CREATE POLICY "Logos Owner Update" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'logos' AND owner = auth.uid());
+
+CREATE POLICY "Logos Owner Delete" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'logos' AND owner = auth.uid());
