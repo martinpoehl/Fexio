@@ -26,7 +26,6 @@ export default function ProductsContent() {
     price: 0,
     unit: 'Stk.',
     tax_rate: 8.1,
-    stock_qty: 0,
     active: true
   })
 
@@ -67,7 +66,6 @@ export default function ProductsContent() {
         price: Number(product.price) || 0,
         unit: product.unit || 'Stk.',
         tax_rate: Number(product.tax_rate) || 8.1,
-        stock_qty: Number(product.stock_qty) || 0,
         active: product.active !== false
       })
     } else {
@@ -80,7 +78,6 @@ export default function ProductsContent() {
         price: 0,
         unit: 'Stk.',
         tax_rate: 8.1,
-        stock_qty: 0,
         active: true
       })
     }
@@ -205,7 +202,6 @@ export default function ProductsContent() {
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Beschreibung</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Preis</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Einheit</th>
-              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Lager</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">MwSt</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Aktionen</th>
@@ -214,11 +210,11 @@ export default function ProductsContent() {
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td colSpan={9} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
+                <td colSpan={8} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
               </tr>
             ) : filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Produkte gefunden</td>
+                <td colSpan={8} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Produkte gefunden</td>
               </tr>
             ) : (
               filteredProducts.map(product => (
@@ -250,9 +246,6 @@ export default function ProductsContent() {
                   </td>
                   <td className="px-6 py-4 text-[13px] text-gray-600">
                     {product.unit || 'Stk.'}
-                  </td>
-                  <td className="px-6 py-4 text-[13px] text-gray-600">
-                    {product.stock_qty ?? 0} Stk.
                   </td>
                   <td className="px-6 py-4 text-[13px] text-gray-600">
                     {product.tax_rate}%
@@ -361,29 +354,6 @@ export default function ProductsContent() {
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                     placeholder="Stk. / Std. / km"
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Stk. Anzahl</label>
-                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setFormData(f => ({ ...f, stock_qty: Math.max(0, f.stock_qty - 1) }))}
-                      className="px-3 py-2 text-gray-500 hover:bg-gray-100 font-bold text-lg leading-none transition-colors"
-                    >−</button>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={formData.stock_qty}
-                      onChange={e => setFormData({...formData, stock_qty: Math.max(0, Number(e.target.value))})}
-                      className="flex-1 text-center py-2 text-sm focus:outline-none bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setFormData(f => ({ ...f, stock_qty: f.stock_qty + 1 }))}
-                      className="px-3 py-2 text-gray-500 hover:bg-gray-100 font-bold text-lg leading-none transition-colors"
-                    >+</button>
-                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Preis (Netto) *</label>
