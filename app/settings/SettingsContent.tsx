@@ -27,8 +27,7 @@ export default function SettingsContent() {
 
   const [userMeta, setUserMeta] = useState({
     first_name: '',
-    last_name: '',
-    company: ''
+    last_name: ''
   })
 
   const supabase = createClient()
@@ -45,8 +44,7 @@ export default function SettingsContent() {
 
       setUserMeta({
         first_name: user.user_metadata?.first_name || '',
-        last_name: user.user_metadata?.last_name || '',
-        company: user.user_metadata?.company || ''
+        last_name: user.user_metadata?.last_name || ''
       })
 
       const { data: companies } = await supabase.from('companies').select('*').eq('user_id', user.id).limit(1)
@@ -55,7 +53,7 @@ export default function SettingsContent() {
         const c = companies[0]
         setCompany(c)
         setFormData({
-          name: c.name || '',
+          name: c.name || user.user_metadata?.company || '',
           address: c.address || '',
           zip: c.zip || '',
           city: c.city || '',
@@ -146,7 +144,6 @@ export default function SettingsContent() {
           data: {
             first_name: userMeta.first_name,
             last_name: userMeta.last_name,
-            company: userMeta.company,
             full_name: `${userMeta.first_name} ${userMeta.last_name}`.trim()
           }
         })
@@ -241,15 +238,6 @@ export default function SettingsContent() {
                 onChange={e => setUserMeta({...userMeta, last_name: e.target.value})}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
                 placeholder="Muster"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Firma <span className="text-gray-400 font-normal normal-case">(optional)</span></label>
-              <input
-                value={userMeta.company}
-                onChange={e => setUserMeta({...userMeta, company: e.target.value})}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                placeholder="Muster AG"
               />
             </div>
           </div>
