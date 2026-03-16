@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { Building2, Mail, Phone, MapPin, CreditCard, Percent, Save, CheckCircle, Upload, X } from 'lucide-react'
+import { Building2, Mail, Phone, MapPin, CreditCard, Percent, Save, CheckCircle, Upload, X, User } from 'lucide-react'
 
 export default function SettingsContent() {
   const [loading, setLoading] = useState(true)
@@ -10,7 +10,7 @@ export default function SettingsContent() {
   const [uploading, setUploading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [company, setCompany] = useState<any>(null)
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -25,6 +25,12 @@ export default function SettingsContent() {
     logo_url: ''
   })
 
+  const [userMeta, setUserMeta] = useState({
+    first_name: '',
+    last_name: '',
+    company: ''
+  })
+
   const supabase = createClient()
 
   useEffect(() => {
@@ -37,8 +43,14 @@ export default function SettingsContent() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
+      setUserMeta({
+        first_name: user.user_metadata?.first_name || '',
+        last_name: user.user_metadata?.last_name || '',
+        company: user.user_metadata?.company || ''
+      })
+
       const { data: companies } = await supabase.from('companies').select('*').eq('user_id', user.id).limit(1)
-      
+
       if (companies && companies.length > 0) {
         const c = companies[0]
         setCompany(c)
@@ -127,14 +139,22 @@ export default function SettingsContent() {
       setSaved(false)
       const { data: { user } } = await supabase.auth.getUser()
       if (!user || !company) return
-      
-      const { error } = await supabase
-        .from('companies')
-        .update(formData)
-        .eq('id', company.id)
 
-      if (error) throw error
-      
+      const [{ error: companyError }, { error: userError }] = await Promise.all([
+        supabase.from('companies').update(formData).eq('id', company.id),
+        supabase.auth.updateUser({
+          data: {
+            first_name: userMeta.first_name,
+            last_name: userMeta.last_name,
+            company: userMeta.company,
+            full_name: `${userMeta.first_name} ${userMeta.last_name}`.trim()
+          }
+        })
+      ])
+
+      if (companyError) throw companyError
+      if (userError) throw userError
+
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
@@ -193,6 +213,44 @@ export default function SettingsContent() {
                 <Upload size={16} /> Datei wählen
                 <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
               </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Personal Info */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+            <h2 className="text-[13px] font-bold text-gray-900 flex items-center gap-2">
+              <User size={16} className="text-gray-400" /> Kontaktperson
+            </h2>
+          </div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Vorname</label>
+              <input
+                value={userMeta.first_name}
+                onChange={e => setUserMeta({...userMeta, first_name: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                placeholder="Max"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Nachname</label>
+              <input
+                value={userMeta.last_name}
+                onChange={e => setUserMeta({...userMeta, last_name: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                placeholder="Muster"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Firma <span className="text-gray-400 font-normal normal-case">(optional)</span></label>
+              <input
+                value={userMeta.company}
+                onChange={e => setUserMeta({...userMeta, company: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                placeholder="Muster AG"
+              />
             </div>
           </div>
         </div>
