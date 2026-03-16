@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -58,6 +58,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Verkauf: true, 'Projekte & Zeit': true })
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [pullDistance, setPullDistance] = useState(0)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const mainRef = useRef<HTMLDivElement>(null)
+  const touchStartY = useRef(0)
+  const PULL_THRESHOLD = 70
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
@@ -102,6 +107,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(href + '/')
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const main = mainRef.current
+    if (!main || main.scrollTop > 0 || isRefreshing) return
+    const dy = e.touches[0].clientY - touchStartY.current
+    if (dy > 0) setPullDistance(Math.min(dy, PULL_THRESHOLD * 1.5))
+  }
+
+  const handleTouchEnd = () => {
+    if (pullDistance >= PULL_THRESHOLD) {
+      setIsRefreshing(true)
+      window.location.reload()
+    }
+    setPullDistance(0)
+  }
 
   if (loading) {
     return (
@@ -242,7 +266,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="ml-3 font-bold text-xl text-gray-900 tracking-tight">Fexio</div>
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main
+          ref={mainRef}
+          className="flex-1 overflow-y-auto bg-gray-50"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Pull-to-refresh indicator */}
+          {(pullDistance > 0 || isRefreshing) && (
+            <div
+              className="flex items-center justify-center overflow-hidden transition-all duration-150"
+              style={{ height: isRefreshing ? 48 : pullDistance * 0.6 }}
+            >
+              <div className={`w-7 h-7 border-2 border-[#00875A] border-t-transparent rounded-full ${isRefreshing ? 'animate-spin' : ''}`}
+                style={{ transform: `rotate(${pullDistance * 3}deg)` }}
+              />
+            </div>
+          )}
           <div className="max-w-[1100px] mx-auto px-4 py-4 md:px-8 md:py-6">
             {children}
           </div>
