@@ -164,6 +164,7 @@ export default function ProductsContent() {
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Artikel / Name</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Beschreibung</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Preis</th>
+              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Einheit</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">MwSt</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Aktionen</th>
             </tr>
@@ -171,11 +172,11 @@ export default function ProductsContent() {
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
+                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
               </tr>
             ) : filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Produkte gefunden</td>
+                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Produkte gefunden</td>
               </tr>
             ) : (
               filteredProducts.map(product => (
@@ -193,7 +194,9 @@ export default function ProductsContent() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="text-[13px] font-semibold text-gray-900">{fCHF(product.price)}</div>
-                    <div className="text-[10px] text-gray-400">pro {product.unit}</div>
+                  </td>
+                  <td className="px-6 py-4 text-[13px] text-gray-600">
+                    {product.unit || 'Stk.'}
                   </td>
                   <td className="px-6 py-4 text-[13px] text-gray-600">
                     {product.tax_rate}%
