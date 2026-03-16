@@ -98,37 +98,40 @@ export default function ContactsContent() {
     setSaveError('')
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) throw new Error('Nicht eingeloggt.')
 
       const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
+      if (!companies?.length) throw new Error('Kein Firmenprofil gefunden. Bitte zuerst Einstellungen ausfüllen.')
       const companyId = companies[0].id
 
       const combinedName = `${formData.first_name} ${formData.last_name}`.trim() || formData.firm || 'Unbenannter Kontakt'
+
+      // Try with new schema (first_name, last_name)
       const payload = { ...formData, company_id: companyId, name: combinedName }
+      let { error } = editingContact
+        ? await supabase.from('contacts').update(payload).eq('id', editingContact.id)
+        : await supabase.from('contacts').insert([payload])
 
-      let error
-      if (editingContact) {
-        ({ error } = await supabase.from('contacts').update(payload).eq('id', editingContact.id))
-      } else {
-        ({ error } = await supabase.from('contacts').insert([payload]))
+      // Fallback: DB hasn't been migrated yet — retry with only name column
+      if (error?.message?.includes('first_name') || error?.message?.includes('last_name')) {
+        const fallback = {
+          company_id: companyId,
+          name: combinedName,
+          firm: formData.firm,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          zip: formData.zip,
+          city: formData.city,
+          type: formData.type,
+          notes: formData.notes
+        };
+        ({ error } = editingContact
+          ? await supabase.from('contacts').update(fallback).eq('id', editingContact.id)
+          : await supabase.from('contacts').insert([fallback]))
       }
 
-      if (error) {
-        // If name column was dropped in migration, retry without it
-        if (error.message?.includes('name')) {
-          const { name: _n, ...payloadWithoutName } = payload
-          let error2
-          if (editingContact) {
-            ({ error: error2 } = await supabase.from('contacts').update(payloadWithoutName).eq('id', editingContact.id))
-          } else {
-            ({ error: error2 } = await supabase.from('contacts').insert([payloadWithoutName]))
-          }
-          if (error2) throw error2
-        } else {
-          throw error
-        }
-      }
+      if (error) throw error
 
       setShowModal(false)
       fetchContacts()
