@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { Building2, Mail, Phone, MapPin, CreditCard, Percent, Save, CheckCircle, Upload, X, User } from 'lucide-react'
+import { Building2, Mail, Phone, MapPin, CreditCard, Percent, Save, CheckCircle, Upload, X, User, Lock } from 'lucide-react'
 
 export default function SettingsContent() {
   const [loading, setLoading] = useState(true)
@@ -32,6 +32,12 @@ export default function SettingsContent() {
     first_name: '',
     last_name: ''
   })
+
+  // Password change state
+  const [pwForm, setPwForm] = useState({ newPw: '', confirmPw: '' })
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwError, setPwError] = useState('')
+  const [pwSaved, setPwSaved] = useState(false)
 
   const supabase = createClient()
 
@@ -169,6 +175,26 @@ export default function SettingsContent() {
       setSaveError(err?.message || 'Fehler beim Speichern der Einstellungen')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPwError('')
+    setPwSaved(false)
+    if (pwForm.newPw.length < 8) { setPwError('Passwort muss mindestens 8 Zeichen lang sein.'); return }
+    if (pwForm.newPw !== pwForm.confirmPw) { setPwError('Passwörter stimmen nicht überein.'); return }
+    setPwSaving(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password: pwForm.newPw })
+      if (error) throw error
+      setPwForm({ newPw: '', confirmPw: '' })
+      setPwSaved(true)
+      setTimeout(() => setPwSaved(false), 3000)
+    } catch (err: any) {
+      setPwError(err?.message || 'Fehler beim Ändern des Passworts')
+    } finally {
+      setPwSaving(false)
     }
   }
 
@@ -394,6 +420,56 @@ export default function SettingsContent() {
           >
             <Save size={18} /> {saving ? 'Speichert...' : 'Speichern'}
           </button>
+        </div>
+      </form>
+
+      {/* Password Change */}
+      <form onSubmit={handlePasswordChange} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mt-6">
+        <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+          <h2 className="text-[13px] font-bold text-gray-900 flex items-center gap-2">
+            <Lock size={16} className="text-gray-400" /> Passwort ändern
+          </h2>
+        </div>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Neues Passwort</label>
+            <input
+              type="password"
+              value={pwForm.newPw}
+              onChange={e => setPwForm({ ...pwForm, newPw: e.target.value })}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+              placeholder="Mindestens 8 Zeichen"
+              autoComplete="new-password"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Passwort bestätigen</label>
+            <input
+              type="password"
+              value={pwForm.confirmPw}
+              onChange={e => setPwForm({ ...pwForm, confirmPw: e.target.value })}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+              placeholder="Passwort wiederholen"
+              autoComplete="new-password"
+            />
+          </div>
+          <div className="md:col-span-2 flex items-center justify-between">
+            <div>
+              {pwError && <p className="text-red-600 text-sm">{pwError}</p>}
+              {pwSaved && (
+                <p className="flex items-center gap-2 text-green-600 text-sm font-semibold">
+                  <CheckCircle size={16} /> Passwort erfolgreich geändert!
+                </p>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={pwSaving || !pwForm.newPw || !pwForm.confirmPw}
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#00875A] hover:bg-[#006B47] text-white rounded-lg text-sm font-bold transition-all shadow-sm disabled:opacity-50"
+            >
+              <Lock size={16} /> {pwSaving ? 'Wird gespeichert...' : 'Passwort ändern'}
+            </button>
+          </div>
         </div>
       </form>
     </div>
