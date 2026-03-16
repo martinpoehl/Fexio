@@ -9,6 +9,7 @@ interface DocumentLine {
   quantity: number
   unit: string
   unit_price: number
+  discount: number
   tax_rate: number
   total: number
 }
@@ -213,7 +214,8 @@ const styles = StyleSheet.create({
   colQty: { width: 45, textAlign: 'right' },
   colUnit: { width: 42, textAlign: 'right' },
   colPrice: { width: 60, textAlign: 'right' },
-  colTax: { width: 40, textAlign: 'right' },
+  colDiscount: { width: 40, textAlign: 'right' },
+  colTax: { width: 35, textAlign: 'right' },
   colTotal: { width: 65, textAlign: 'right' },
 
   // ── Totals ──
@@ -361,6 +363,8 @@ export function InvoicePDF({
 
   const logoSrc = logoBase64 || company.logo_url || null
 
+  const hasDiscount = lines.some(l => l.discount && l.discount > 0)
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -439,6 +443,7 @@ export function InvoicePDF({
               <Text style={[styles.tableHeaderCell, styles.colQty]}>Menge</Text>
               <Text style={[styles.tableHeaderCell, styles.colUnit]}>Einheit</Text>
               <Text style={[styles.tableHeaderCell, styles.colPrice]}>Preis</Text>
+              {hasDiscount && <Text style={[styles.tableHeaderCell, styles.colDiscount]}>Rabatt</Text>}
               <Text style={[styles.tableHeaderCell, styles.colTax]}>MwSt</Text>
               <Text style={[styles.tableHeaderCell, styles.colTotal]}>Total</Text>
             </View>
@@ -457,6 +462,11 @@ export function InvoicePDF({
                 <Text style={[styles.tableCell, styles.colQty]}>{fNum(line.quantity)}</Text>
                 <Text style={[styles.tableCell, styles.colUnit]}>{line.unit}</Text>
                 <Text style={[styles.tableCell, styles.colPrice]}>{fNum(line.unit_price)}</Text>
+                {hasDiscount && (
+                  <Text style={[styles.tableCell, styles.colDiscount]}>
+                    {line.discount && line.discount > 0 ? `${line.discount}%` : ''}
+                  </Text>
+                )}
                 <Text style={[styles.tableCell, styles.colTax]}>{line.tax_rate}%</Text>
                 <Text style={[styles.tableCell, styles.colTotal]}>{fNum(line.total)}</Text>
               </View>
