@@ -57,9 +57,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [company, setCompany] = useState<any>(null)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Verkauf: true, 'Projekte & Zeit': true })
   const [loading, setLoading] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
+
+  useEffect(() => {
+    // Close sidebar on navigation on mobile
+    setSidebarOpen(false)
+  }, [pathname])
 
   useEffect(() => {
     async function load() {
@@ -109,12 +115,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden relative">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-[220px] bg-[#1B2A4A] flex flex-col shrink-0">
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-[240px] bg-[#1B2A4A] flex flex-col shrink-0 transition-transform duration-300 lg:static lg:translate-x-0
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
         {/* Company header */}
-        <div className="px-4 py-4 border-b border-white/[0.08]">
-          <div className="flex items-center gap-2.5">
+        <div className="px-4 py-4 border-b border-white/[0.08] flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 bg-[#00875A] rounded-md flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
               {company?.logo_url ? (
                 <img src={company.logo_url} alt="Logo" className="w-full h-full object-cover" />
@@ -127,6 +144,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="text-white/40 text-[10px] truncate">{user?.email}</div>
             </div>
           </div>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-white/50 hover:text-white">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
         </div>
 
         {/* Navigation */}
@@ -208,11 +228,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50">
-        <div className="max-w-[1100px] mx-auto px-8 py-6">
-          {children}
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Mobile Header */}
+        <header className="lg:hidden h-14 bg-white border-b border-gray-200 flex items-center px-4 shrink-0">
+          <button 
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 -ml-2 text-gray-500 hover:text-gray-600"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div className="ml-3 font-bold text-gray-900">Fexio</div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          <div className="max-w-[1100px] mx-auto px-4 py-4 md:px-8 md:py-6">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

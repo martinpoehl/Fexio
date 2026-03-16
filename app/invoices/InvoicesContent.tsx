@@ -115,8 +115,8 @@ export default function InvoicesContent() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Nummer</th>
