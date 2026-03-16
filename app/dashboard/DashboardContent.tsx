@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 
 function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
@@ -26,17 +27,7 @@ export default function DashboardContent() {
   useEffect(() => {
     async function load() {
       try {
-        // Get company
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-        const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-        
-        if (!companies?.length) {
-          setLoading(false)
-          return
-        }
-        
-        const companyId = companies[0].id
+        const companyId = await getOrCreateCompanyId(supabase)
 
         // Revenue (paid invoices)
         const { data: paidInv } = await supabase

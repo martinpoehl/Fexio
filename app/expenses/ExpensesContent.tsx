@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { Plus, Search, Edit2, Trash2, Receipt, Calendar, User, Tag, X } from 'lucide-react'
 
 const ACCOUNTS = [
@@ -44,12 +45,7 @@ export default function ExpensesContent() {
   async function fetchExpenses() {
     try {
       setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       const { data, error } = await supabase
         .from('expenses')
@@ -99,12 +95,7 @@ export default function ExpensesContent() {
     setSaving(true)
     setSaveError('')
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       if (editingExpense) {
         const { error } = await supabase

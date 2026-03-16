@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { Plus, Search, MoreHorizontal, Edit2, Trash2, Mail, Phone, Building2, X } from 'lucide-react'
 
 export default function ContactsContent() {
@@ -36,12 +37,7 @@ export default function ContactsContent() {
   async function fetchContacts() {
     try {
       setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       const { data, error } = await supabase
         .from('contacts')
@@ -97,12 +93,7 @@ export default function ContactsContent() {
     setSaving(true)
     setSaveError('')
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Nicht eingeloggt.')
-
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) throw new Error('Kein Firmenprofil gefunden. Bitte zuerst Einstellungen ausfüllen.')
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       const combinedName = `${formData.first_name} ${formData.last_name}`.trim() || formData.firm || 'Unbenannter Kontakt'
 

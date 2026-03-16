@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { useSearchParams } from 'next/navigation'
 import { Plus, Search, FileText, User, Calendar, CheckCircle2, AlertCircle, Clock, Trash2, X, Edit2 } from 'lucide-react'
 
@@ -39,12 +40,7 @@ export default function InvoicesContent() {
   async function fetchDocuments() {
     try {
       setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       const [docsResult, contactsResult] = await Promise.all([
         supabase.from('documents').select('*, contacts(name, first_name, last_name, firm)').eq('company_id', companyId).eq('type', typeFilter).order('date', { ascending: false }),
@@ -110,12 +106,7 @@ export default function InvoicesContent() {
     setSaving(true)
     setSaveError('')
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Nicht eingeloggt.')
-
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) throw new Error('Kein Firmenprofil gefunden.')
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       const selectedContact = contacts.find(c => c.id === formData.contact_id)
       const payload: any = {

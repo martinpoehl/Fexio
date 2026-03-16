@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { Plus, Search, Edit2, Trash2, Briefcase, User, Target, Clock, X } from 'lucide-react'
 
 export default function ProjectsContent() {
@@ -32,12 +33,7 @@ export default function ProjectsContent() {
   async function fetchData() {
     try {
       setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       // Fetch projects with contact name
       const { data: projectsData, error: projErr } = await supabase
@@ -93,12 +89,7 @@ export default function ProjectsContent() {
     setSaving(true)
     setSaveError('')
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       const payload = { ...formData, company_id: companyId }
       if (payload.contact_id === '') delete (payload as any).contact_id

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { Calculator, Search, Calendar, ArrowRight, FileText, Receipt } from 'lucide-react'
 
 export default function JournalContent() {
@@ -18,12 +19,7 @@ export default function JournalContent() {
   async function fetchEntries() {
     try {
       setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       const { data, error } = await supabase
         .from('journal_entries')

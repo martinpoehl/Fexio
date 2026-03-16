@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { Plus, Search, Edit2, Trash2, Package, Tag, Info, X } from 'lucide-react'
 
 export default function ProductsContent() {
@@ -33,12 +34,7 @@ export default function ProductsContent() {
   async function fetchProducts() {
     try {
       setLoading(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       const { data, error } = await supabase
         .from('products')
@@ -88,12 +84,7 @@ export default function ProductsContent() {
     setSaving(true)
     setSaveError('')
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      
-      const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
-      const companyId = companies[0].id
+      const companyId = await getOrCreateCompanyId(supabase)
 
       if (editingProduct) {
         const { error } = await supabase
