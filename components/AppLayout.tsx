@@ -128,7 +128,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-[240px] bg-[#1B2A4A] flex flex-col shrink-0 transition-transform duration-300 lg:static lg:translate-x-0
+        fixed inset-y-0 left-0 z-50 w-[240px] bg-[#1a56db] flex flex-col shrink-0 transition-transform duration-300 lg:static lg:translate-x-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         {/* Company header */}
@@ -184,7 +184,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                           href={child.href}
                           className={`block px-3 py-1.5 pl-9 rounded-md text-[13px] transition-colors ${
                             isActive(child.href)
-                              ? 'bg-[#2D4270] text-white font-semibold'
+                              ? 'bg-white/20 text-white font-semibold'
                               : 'text-white/45 hover:text-white/70 hover:bg-white/[0.04]'
                           }`}
                         >
@@ -203,7 +203,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 href={item.href!}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] transition-colors ${
                   isActive(item.href!)
-                    ? 'bg-[#2D4270] text-white font-semibold'
+                    ? 'bg-white/20 text-white font-semibold'
                     : 'text-white/50 hover:text-white/70 hover:bg-white/[0.04]'
                 }`}
               >
