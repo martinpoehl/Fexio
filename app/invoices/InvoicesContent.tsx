@@ -47,8 +47,8 @@ export default function InvoicesContent() {
       const companyId = companies[0].id
 
       const [docsResult, contactsResult] = await Promise.all([
-        supabase.from('documents').select('*, contacts(name)').eq('company_id', companyId).eq('type', typeFilter).order('date', { ascending: false }),
-        supabase.from('contacts').select('id, name').eq('company_id', companyId).order('name')
+        supabase.from('documents').select('*, contacts(name, first_name, last_name, firm)').eq('company_id', companyId).eq('type', typeFilter).order('date', { ascending: false }),
+        supabase.from('contacts').select('id, name, first_name, last_name, firm').eq('company_id', companyId).order('last_name')
       ])
 
       if (docsResult.error) throw docsResult.error
@@ -100,16 +100,21 @@ export default function InvoicesContent() {
     setShowModal(true)
   }
 
+  const getContactLabel = (c: any) => {
+    const fullName = [c.first_name, c.last_name].filter(Boolean).join(' ')
+    return fullName || c.name || c.firm || '–'
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     setSaveError('')
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) throw new Error('Nicht eingeloggt.')
 
       const { data: companies } = await supabase.from('companies').select('id').eq('user_id', user.id).limit(1)
-      if (!companies?.length) return
+      if (!companies?.length) throw new Error('Kein Firmenprofil gefunden.')
       const companyId = companies[0].id
 
       const selectedContact = contacts.find(c => c.id === formData.contact_id)
@@ -117,7 +122,7 @@ export default function InvoicesContent() {
         ...formData,
         type: typeFilter,
         company_id: companyId,
-        contact_name: selectedContact?.name || formData.contact_name
+        contact_name: selectedContact ? getContactLabel(selectedContact) : formData.contact_name
       }
       if (!payload.contact_id) delete payload.contact_id
 
@@ -241,7 +246,7 @@ export default function InvoicesContent() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-[13px] text-gray-900 flex items-center gap-1.5">
-                      <User size={12} className="text-gray-400" /> {doc.contact_name || doc.contacts?.name || '–'}
+                      <User size={12} className="text-gray-400" /> {doc.contact_name || (doc.contacts ? getContactLabel(doc.contacts) : '–')}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -330,7 +335,7 @@ export default function InvoicesContent() {
                   >
                     <option value="">– Keiner –</option>
                     {contacts.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.id}>{getContactLabel(c)}</option>
                     ))}
                   </select>
                 </div>
