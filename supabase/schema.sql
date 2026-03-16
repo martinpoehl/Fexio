@@ -20,6 +20,7 @@ create table public.companies (
   iban text default '',
   uid_nr text default '',
   mwst_rate numeric(5,2) default 8.1,
+  logo_url text default '',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -30,7 +31,9 @@ create table public.companies (
 create table public.contacts (
   id uuid default uuid_generate_v4() primary key,
   company_id uuid references public.companies(id) on delete cascade not null,
-  name text not null,
+  name text default '',
+  first_name text default '',
+  last_name text default '',
   firm text default '',
   email text default '',
   phone text default '',
@@ -248,7 +251,15 @@ create or replace function public.handle_new_user()
 returns trigger as $$
 begin
   insert into public.companies (user_id, name, email)
-  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', 'Meine Firma'), new.email);
+  values (
+    new.id,
+    coalesce(
+      nullif(new.raw_user_meta_data->>'company', ''),
+      new.raw_user_meta_data->>'full_name',
+      'Meine Firma'
+    ),
+    new.email
+  );
   return new;
 end;
 $$ language plpgsql security definer;
