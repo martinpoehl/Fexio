@@ -231,19 +231,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile Header */}
-        <header className="lg:hidden bg-[#1a56db] flex items-center px-4 shrink-0" style={{ paddingTop: 'max(env(safe-area-inset-top), 1rem)', paddingBottom: '0.75rem' }}>
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 -ml-2 text-white/80 hover:text-white"
-          >
-            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <div className="ml-3 font-bold text-xl text-white tracking-tight">Fexio</div>
+        <header className="lg:hidden bg-[#1a56db] shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+          <div className="flex items-center px-4 py-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 -ml-2 text-white/80 hover:text-white"
+            >
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <div className="ml-3 font-bold text-xl text-white tracking-tight">Fexio</div>
+          </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-gray-50" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="max-w-[1100px] mx-auto px-4 py-4 md:px-8 md:py-6">
             {children}
           </div>
