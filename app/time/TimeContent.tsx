@@ -49,6 +49,12 @@ export default function TimeContent() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
 
+  // Default hourly rate
+  const [defaultRate, setDefaultRate] = useState(0)
+  const [editingRate, setEditingRate] = useState(false)
+  const [rateInput, setRateInput] = useState('0')
+  const [companyId, setCompanyId] = useState<string | null>(null)
+
   // Timer state
   const [timerRunning, setTimerRunning] = useState(false)
   const [timerStart, setTimerStart] = useState<number | null>(null)
@@ -115,6 +121,7 @@ export default function TimeContent() {
 
     // Pre-fill form with timer data
     setEditingEntry(null)
+    const proj = projects.find(p => p.id === timerProject)
     setFormData({
       description: timerDesc,
       date: startISO.toISOString().split('T')[0],
@@ -123,10 +130,7 @@ export default function TimeContent() {
       end_time: endISO.toTimeString().slice(0, 5),
       project_id: timerProject,
       billable: true,
-      hourly_rate: (() => {
-        const proj = projects.find(p => p.id === timerProject)
-        return proj ? Number(proj.hourly_rate) : 0
-      })()
+      hourly_rate: proj ? Number(proj.hourly_rate) : defaultRate
     })
 
     // Stop timer
@@ -151,30 +155,49 @@ export default function TimeContent() {
   async function fetchData() {
     try {
       setLoading(true)
-      const companyId = await getOrCreateCompanyId(supabase)
+      const cId = await getOrCreateCompanyId(supabase)
+      setCompanyId(cId)
 
-      const { data: entriesData, error: entErr } = await supabase
-        .from('time_entries')
-        .select('*, projects(name, hourly_rate)')
-        .eq('company_id', companyId)
-        .order('date', { ascending: false })
+      const [entriesRes, projectsRes, companyRes] = await Promise.all([
+        supabase
+          .from('time_entries')
+          .select('*, projects(name, hourly_rate)')
+          .eq('company_id', cId)
+          .order('date', { ascending: false }),
+        supabase
+          .from('projects')
+          .select('id, name, hourly_rate')
+          .eq('company_id', cId)
+          .eq('status', 'aktiv')
+          .order('name'),
+        supabase
+          .from('companies')
+          .select('default_hourly_rate')
+          .eq('id', cId)
+          .single(),
+      ])
 
-      if (entErr) throw entErr
-      setEntries(entriesData || [])
+      if (entriesRes.error) throw entriesRes.error
+      setEntries(entriesRes.data || [])
+      setProjects(projectsRes.data || [])
 
-      const { data: projectsData } = await supabase
-        .from('projects')
-        .select('id, name, hourly_rate')
-        .eq('company_id', companyId)
-        .eq('status', 'aktiv')
-        .order('name')
-
-      setProjects(projectsData || [])
+      const rate = Number(companyRes.data?.default_hourly_rate) || 0
+      setDefaultRate(rate)
+      setRateInput(rate > 0 ? String(rate) : '')
     } catch (err) {
       console.error('Error fetching data:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  async function saveDefaultRate(value: number) {
+    if (!companyId) return
+    setDefaultRate(value)
+    await supabase
+      .from('companies')
+      .update({ default_hourly_rate: value })
+      .eq('id', companyId)
   }
 
   const handleOpenModal = (entry: any = null) => {
@@ -200,7 +223,7 @@ export default function TimeContent() {
         end_time: '',
         project_id: '',
         billable: true,
-        hourly_rate: 0
+        hourly_rate: defaultRate
       })
     }
     setSaveError('')
@@ -273,13 +296,58 @@ export default function TimeContent() {
           <h1 className="text-[22px] font-bold text-gray-900">Zeiterfassung</h1>
           <p className="text-gray-400 text-sm mt-1">Erfasse deine Arbeitszeiten auf Projekten</p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 bg-[#00875A] hover:bg-[#006B47] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-        >
-          <Plus size={18} />
-          Manuell erfassen
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Default hourly rate */}
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+            <Clock size={14} className="text-gray-400 shrink-0" />
+            <span className="text-xs text-gray-500 whitespace-nowrap">Standard-Stundensatz</span>
+            {editingRate ? (
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-400">CHF</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="5"
+                  autoFocus
+                  value={rateInput}
+                  onChange={e => setRateInput(e.target.value)}
+                  onBlur={() => {
+                    const v = Number(rateInput) || 0
+                    setEditingRate(false)
+                    saveDefaultRate(v)
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      const v = Number(rateInput) || 0
+                      setEditingRate(false)
+                      saveDefaultRate(v)
+                    }
+                    if (e.key === 'Escape') {
+                      setEditingRate(false)
+                      setRateInput(defaultRate > 0 ? String(defaultRate) : '')
+                    }
+                  }}
+                  className="w-20 text-sm font-semibold text-gray-900 border-b border-green-500 focus:outline-none bg-transparent text-right"
+                />
+                <span className="text-xs text-gray-400">/ Std.</span>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setRateInput(defaultRate > 0 ? String(defaultRate) : ''); setEditingRate(true) }}
+                className="text-sm font-semibold text-gray-900 hover:text-green-700 transition-colors"
+              >
+                CHF {defaultRate > 0 ? defaultRate.toFixed(2) : '–'} / Std.
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 bg-[#00875A] hover:bg-[#006B47] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+          >
+            <Plus size={18} />
+            Manuell erfassen
+          </button>
+        </div>
       </div>
 
       {/* Live Timer Card */}
@@ -529,7 +597,7 @@ export default function TimeContent() {
                       setFormData({
                         ...formData,
                         project_id: projId,
-                        hourly_rate: proj ? Number(proj.hourly_rate) : 0
+                        hourly_rate: proj ? Number(proj.hourly_rate) : defaultRate
                       })
                     }}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
@@ -540,15 +608,31 @@ export default function TimeContent() {
                     ))}
                   </select>
                 </div>
-                <div className="flex items-center gap-3 py-2">
-                  <input
-                    type="checkbox"
-                    id="billable"
-                    checked={formData.billable}
-                    onChange={e => setFormData({...formData, billable: e.target.checked})}
-                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                  />
-                  <label htmlFor="billable" className="text-sm font-medium text-gray-700 select-none">Verrechenbar</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Stundensatz (CHF)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="5"
+                      value={formData.hourly_rate === 0 ? '' : formData.hourly_rate}
+                      onChange={e => setFormData({...formData, hourly_rate: Number(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                      placeholder={defaultRate > 0 ? String(defaultRate) : '0'}
+                    />
+                  </div>
+                  <div className="flex items-end pb-2">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="billable"
+                        checked={formData.billable}
+                        onChange={e => setFormData({...formData, billable: e.target.checked})}
+                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      />
+                      <label htmlFor="billable" className="text-sm font-medium text-gray-700 select-none">Verrechenbar</label>
+                    </div>
+                  </div>
                 </div>
               </div>
               {saveError && <p className="text-red-600 text-xs mb-3">{saveError}</p>}
