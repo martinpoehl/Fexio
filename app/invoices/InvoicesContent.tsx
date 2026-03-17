@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { useSearchParams } from 'next/navigation'
-import { Plus, Search, FileText, User, Calendar, Trash2, X, Edit2, Package, FileDown, Mail, Clock } from 'lucide-react'
+import { Plus, Search, FileText, User, Calendar, Trash2, X, Edit2, Package, FileDown, Mail, Clock, Receipt } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -79,6 +79,12 @@ export default function InvoicesContent() {
   const [timeEntries, setTimeEntries] = useState<any[]>([])
   const [selectedTimeIds, setSelectedTimeIds] = useState<string[]>([])
   const [importedTimeEntryIds, setImportedTimeEntryIds] = useState<string[]>([])
+
+  // ─── Expenses import state ────────────────────────────────────────────────────
+  const [showExpenseModal, setShowExpenseModal] = useState(false)
+  const [expenses, setExpenses] = useState<any[]>([])
+  const [selectedExpenseIds, setSelectedExpenseIds] = useState<string[]>([])
+  const [importedExpenseIds, setImportedExpenseIds] = useState<string[]>([])
 
   // ─── Email modal state ───────────────────────────────────────────────────────
   const [showEmailModal, setShowEmailModal] = useState(false)
@@ -239,9 +245,50 @@ export default function InvoicesContent() {
     setShowTimeModal(false)
   }
 
+  const fetchNonInvoicedExpenses = async () => {
+    const companyId = await getOrCreateCompanyId(supabase)
+    const { data } = await supabase
+      .from('expenses')
+      .select('*')
+      .eq('company_id', companyId)
+      .eq('invoiced', false)
+      .order('date', { ascending: false })
+    setExpenses(data || [])
+  }
+
+  const handleOpenExpenseModal = async () => {
+    setSelectedExpenseIds([])
+    await fetchNonInvoicedExpenses()
+    setShowExpenseModal(true)
+  }
+
+  const handleImportExpenses = () => {
+    const toImport = expenses.filter(e => selectedExpenseIds.includes(e.id))
+    const newLines: LineItem[] = toImport.map((e, i) => {
+      const desc = [e.description, e.vendor].filter(Boolean).join(' – ')
+      const line: LineItem = {
+        position: lines.length + i + 1,
+        description: desc || 'Aufwand',
+        quantity: 1,
+        unit: 'Pauschal',
+        unit_price: Number(e.amount) || 0,
+        discount: 0,
+        tax_rate: 0,
+        total: 0,
+      }
+      line.total = calcLineTotal(line)
+      return line
+    })
+    setLines(prev => [...prev, ...newLines])
+    setImportedExpenseIds(prev => [...prev, ...selectedExpenseIds])
+    setSelectedExpenseIds([])
+    setShowExpenseModal(false)
+  }
+
   const handleOpenModal = async (doc: any = null) => {
     setSaveError('')
     setImportedTimeEntryIds([])
+    setImportedExpenseIds([])
     if (doc) {
       setEditingDoc(doc)
       setFormData({
@@ -410,6 +457,14 @@ export default function InvoicesContent() {
           .from('time_entries')
           .update({ invoiced: true, invoice_id: documentId })
           .in('id', importedTimeEntryIds)
+      }
+
+      // Mark imported expenses as invoiced
+      if (importedExpenseIds.length > 0) {
+        await supabase
+          .from('expenses')
+          .update({ invoiced: true, invoice_id: documentId })
+          .in('id', importedExpenseIds)
       }
 
       setShowModal(false)
@@ -792,6 +847,86 @@ export default function InvoicesContent() {
         </div>
       )}
 
+      {/* ─── Expenses import modal ───────────────────────────────────────────────── */}
+      {showExpenseModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <Receipt size={18} className="text-orange-500" />
+                <h2 className="font-bold text-gray-900">Ausgaben importieren</h2>
+              </div>
+              <button onClick={() => setShowExpenseModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-4">
+              {expenses.length === 0 ? (
+                <p className="text-center text-gray-400 text-sm py-10">Keine offenen Ausgaben vorhanden</p>
+              ) : (
+                <div className="space-y-1">
+                  {expenses.map(expense => {
+                    const isSelected = selectedExpenseIds.includes(expense.id)
+                    return (
+                      <label
+                        key={expense.id}
+                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                          isSelected ? 'border-orange-300 bg-orange-50' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setSelectedExpenseIds(prev => [...prev, expense.id])
+                            } else {
+                              setSelectedExpenseIds(prev => prev.filter(id => id !== expense.id))
+                            }
+                          }}
+                          className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {expense.description || 'Ohne Beschreibung'}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {fD(expense.date)}{expense.vendor ? ` · ${expense.vendor}` : ''}{expense.category ? ` · ${expense.category}` : ''}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-semibold text-gray-700">{fCHF(Number(expense.amount) || 0)}</p>
+                        </div>
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+              <span className="text-xs text-gray-500">{selectedExpenseIds.length} ausgewählt</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowExpenseModal(false)}
+                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Abbrechen
+                </button>
+                <button
+                  type="button"
+                  onClick={handleImportExpenses}
+                  disabled={selectedExpenseIds.length === 0}
+                  className="flex items-center gap-2 px-5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50"
+                >
+                  <Plus size={15} /> Übernehmen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── Email Modal ───────────────────────────────────────────────────────── */}
       {showEmailModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -1018,13 +1153,22 @@ export default function InvoicesContent() {
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Positionen</h3>
                   <div className="flex items-center gap-3">
                     {typeFilter === 'invoice' && (
-                      <button
-                        type="button"
-                        onClick={handleOpenTimeModal}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
-                      >
-                        <Clock size={14} /> Zeiten importieren
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleOpenTimeModal}
+                          className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          <Clock size={14} /> Zeiten importieren
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleOpenExpenseModal}
+                          className="flex items-center gap-1.5 text-xs font-semibold text-orange-600 hover:text-orange-800 transition-colors"
+                        >
+                          <Receipt size={14} /> Ausgaben importieren
+                        </button>
+                      </>
                     )}
                     <button
                       type="button"
