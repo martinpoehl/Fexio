@@ -307,7 +307,7 @@ export default function TimeContent() {
                 <input
                   type="number"
                   min="0"
-                  step="5"
+                  step="any"
                   autoFocus
                   value={rateInput}
                   onChange={e => setRateInput(e.target.value)}
@@ -614,7 +614,7 @@ export default function TimeContent() {
                     <input
                       type="number"
                       min="0"
-                      step="5"
+                      step="any"
                       value={formData.hourly_rate === 0 ? '' : formData.hourly_rate}
                       onChange={e => setFormData({...formData, hourly_rate: Number(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
