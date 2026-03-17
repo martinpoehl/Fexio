@@ -56,7 +56,7 @@ function NavIcon({ name, className = "w-[18px] h-[18px]" }: { name: string; clas
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null)
   const [company, setCompany] = useState<any>(null)
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Verkauf: true, Einkauf: true, 'Projekte & Zeit': true })
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Verkauf: true, Einkauf: true, 'Projekte & Zeit': true, Buchhaltung: true })
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
