@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { useSearchParams } from 'next/navigation'
-import { Plus, Search, FileText, User, Calendar, Trash2, X, Edit2, Package, FileDown, Mail } from 'lucide-react'
+import { Plus, Search, FileText, User, Calendar, Trash2, X, Edit2, Package, FileDown, Mail, Clock } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -73,6 +73,12 @@ export default function InvoicesContent() {
   const [lines, setLines] = useState<LineItem[]>([emptyLine(1)])
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+
+  // ─── Time entries import state ───────────────────────────────────────────────
+  const [showTimeModal, setShowTimeModal] = useState(false)
+  const [timeEntries, setTimeEntries] = useState<any[]>([])
+  const [selectedTimeIds, setSelectedTimeIds] = useState<string[]>([])
+  const [importedTimeEntryIds, setImportedTimeEntryIds] = useState<string[]>([])
 
   // ─── Email modal state ───────────────────────────────────────────────────────
   const [showEmailModal, setShowEmailModal] = useState(false)
@@ -190,8 +196,52 @@ export default function InvoicesContent() {
 
   // ─── Modal open/close ───────────────────────────────────────────────────────
 
+  const fetchUnbilledTimeEntries = async () => {
+    const companyId = await getOrCreateCompanyId(supabase)
+    const { data } = await supabase
+      .from('time_entries')
+      .select('*, projects(name)')
+      .eq('company_id', companyId)
+      .eq('billable', true)
+      .eq('invoiced', false)
+      .order('date', { ascending: false })
+    setTimeEntries(data || [])
+  }
+
+  const handleOpenTimeModal = async () => {
+    setSelectedTimeIds([])
+    await fetchUnbilledTimeEntries()
+    setShowTimeModal(true)
+  }
+
+  const handleImportTimeEntries = () => {
+    const toImport = timeEntries.filter(e => selectedTimeIds.includes(e.id))
+    const newLines: LineItem[] = toImport.map((e, i) => {
+      const hours = Math.round((e.duration_minutes / 60) * 100) / 100
+      const projectName = e.projects?.name ? ` (${e.projects.name})` : ''
+      const desc = (e.description || 'Arbeitszeit') + projectName
+      const line: LineItem = {
+        position: lines.length + i + 1,
+        description: desc,
+        quantity: hours,
+        unit: 'Std.',
+        unit_price: Number(e.hourly_rate) || 0,
+        discount: 0,
+        tax_rate: 8.1,
+        total: 0,
+      }
+      line.total = calcLineTotal(line)
+      return line
+    })
+    setLines(prev => [...prev, ...newLines])
+    setImportedTimeEntryIds(prev => [...prev, ...selectedTimeIds])
+    setSelectedTimeIds([])
+    setShowTimeModal(false)
+  }
+
   const handleOpenModal = async (doc: any = null) => {
     setSaveError('')
+    setImportedTimeEntryIds([])
     if (doc) {
       setEditingDoc(doc)
       setFormData({
@@ -352,6 +402,14 @@ export default function InvoicesContent() {
           .from('document_lines')
           .insert(lineRows)
         if (linesErr) throw linesErr
+      }
+
+      // Mark imported time entries as invoiced
+      if (importedTimeEntryIds.length > 0) {
+        await supabase
+          .from('time_entries')
+          .update({ invoiced: true, invoice_id: documentId })
+          .in('id', importedTimeEntryIds)
       }
 
       setShowModal(false)
@@ -651,6 +709,89 @@ export default function InvoicesContent() {
         </table>
       </div>
 
+      {/* ─── Time entries import modal ─────────────────────────────────────────── */}
+      {showTimeModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <Clock size={18} className="text-blue-500" />
+                <h2 className="font-bold text-gray-900">Zeiten importieren</h2>
+              </div>
+              <button onClick={() => setShowTimeModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-4">
+              {timeEntries.length === 0 ? (
+                <p className="text-center text-gray-400 text-sm py-10">Keine verrechenbaren Zeiteinträge vorhanden</p>
+              ) : (
+                <div className="space-y-1">
+                  {timeEntries.map(entry => {
+                    const hours = Math.round((entry.duration_minutes / 60) * 100) / 100
+                    const total = hours * (Number(entry.hourly_rate) || 0)
+                    const isSelected = selectedTimeIds.includes(entry.id)
+                    return (
+                      <label
+                        key={entry.id}
+                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                          isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setSelectedTimeIds(prev => [...prev, entry.id])
+                            } else {
+                              setSelectedTimeIds(prev => prev.filter(id => id !== entry.id))
+                            }
+                          }}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {entry.description || 'Ohne Beschreibung'}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {fD(entry.date)}{entry.projects?.name ? ` · ${entry.projects.name}` : ''}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-semibold text-gray-700">{hours} Std.</p>
+                          <p className="text-xs text-gray-400">{fCHF(total)}</p>
+                        </div>
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+              <span className="text-xs text-gray-500">{selectedTimeIds.length} ausgewählt</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowTimeModal(false)}
+                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Abbrechen
+                </button>
+                <button
+                  type="button"
+                  onClick={handleImportTimeEntries}
+                  disabled={selectedTimeIds.length === 0}
+                  className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50"
+                >
+                  <Plus size={15} /> Übernehmen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── Email Modal ───────────────────────────────────────────────────────── */}
       {showEmailModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -875,13 +1016,24 @@ export default function InvoicesContent() {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Positionen</h3>
-                  <button
-                    type="button"
-                    onClick={addLine}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-[#00875A] hover:text-[#006B47] transition-colors"
-                  >
-                    <Plus size={14} /> Position hinzufügen
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {typeFilter === 'invoice' && (
+                      <button
+                        type="button"
+                        onClick={handleOpenTimeModal}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        <Clock size={14} /> Zeiten importieren
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={addLine}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-[#00875A] hover:text-[#006B47] transition-colors"
+                    >
+                      <Plus size={14} /> Position hinzufügen
+                    </button>
+                  </div>
                 </div>
 
                 {/* Column headers */}
