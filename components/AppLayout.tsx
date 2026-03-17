@@ -116,10 +116,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       return true
     }
     const hrefParams = new URLSearchParams(hrefQuery)
-    for (const [key, value] of hrefParams.entries()) {
-      if (current.get(key) !== value) return false
-    }
-    return true
+    let match = true
+    hrefParams.forEach((value, key) => {
+      if (current.get(key) !== value) match = false
+    })
+    return match
   }
 
 
