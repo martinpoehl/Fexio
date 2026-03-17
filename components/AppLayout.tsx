@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 
 const navItems = [
@@ -61,7 +61,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const [currentSearch, setCurrentSearch] = useState('')
+
+  useEffect(() => {
+    setCurrentSearch(window.location.search)
+  }, [pathname])
   const supabase = createClient()
 
   useEffect(() => {
@@ -105,16 +109,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const isActive = (href: string) => {
     const [hrefPath, hrefQuery] = href.split('?')
-    if (!pathname?.startsWith(hrefPath) && pathname !== hrefPath) return false
+    if (pathname !== hrefPath && !pathname?.startsWith(hrefPath + '/')) return false
+    const current = new URLSearchParams(currentSearch)
     if (!hrefQuery) {
-      // No query in href: only match if current URL also has no relevant type param
-      // (so /invoices only highlights when no ?type= is set)
-      if (hrefPath === '/invoices') return !searchParams?.get('type')
-      return pathname === hrefPath || pathname?.startsWith(hrefPath + '/')
+      if (hrefPath === '/invoices') return !current.get('type')
+      return true
     }
     const hrefParams = new URLSearchParams(hrefQuery)
     for (const [key, value] of hrefParams.entries()) {
-      if (searchParams?.get(key) !== value) return false
+      if (current.get(key) !== value) return false
     }
     return true
   }
