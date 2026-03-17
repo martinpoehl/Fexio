@@ -61,11 +61,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
-  const [currentSearch, setCurrentSearch] = useState('')
-
-  useEffect(() => {
-    setCurrentSearch(window.location.search)
-  }, [pathname])
   const supabase = createClient()
 
   useEffect(() => {
@@ -110,7 +105,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) => {
     const [hrefPath, hrefQuery] = href.split('?')
     if (pathname !== hrefPath && !pathname?.startsWith(hrefPath + '/')) return false
-    const current = new URLSearchParams(currentSearch)
+    const current = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
     if (!hrefQuery) {
       if (hrefPath === '/invoices') return !current.get('type')
       return true
