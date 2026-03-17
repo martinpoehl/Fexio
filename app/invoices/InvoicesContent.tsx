@@ -1086,7 +1086,7 @@ export default function InvoicesContent() {
                         <input
                           type="number"
                           min="0"
-                          step="1"
+                          step="0.01"
                           value={line.quantity}
                           onChange={e => updateLine(idx, { quantity: Math.max(0, Number(e.target.value)) })}
                           className="w-full text-center py-1.5 text-sm focus:outline-none bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
