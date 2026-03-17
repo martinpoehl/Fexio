@@ -70,7 +70,7 @@ export default function InvoicesContent() {
     notes: '',
   })
 
-  const [lines, setLines] = useState<LineItem[]>([emptyLine(1)])
+  const [lines, setLines] = useState<LineItem[]>([])
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
 
@@ -328,7 +328,7 @@ export default function InvoicesContent() {
           }))
         )
       } else {
-        setLines([emptyLine(1)])
+        setLines([])
       }
     } else {
       setEditingDoc(null)
@@ -1273,6 +1273,13 @@ export default function InvoicesContent() {
                       className="flex items-center gap-1.5 text-xs font-semibold text-[#00875A] hover:text-[#006B47] transition-colors"
                     >
                       <Package size={14} /> Produkt importieren
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addLine}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      <Plus size={14} /> Eigene Position
                     </button>
                   </div>
                 </div>
