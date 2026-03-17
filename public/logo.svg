@@ -1,0 +1,25 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1a56db"/>
+      <stop offset="1" stop-color="#00875A"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded square -->
+  <rect width="64" height="64" rx="13" fill="url(#bg)"/>
+  <!-- Subtle top highlight for depth -->
+  <rect width="64" height="64" rx="13" fill="url(#shine)"/>
+  <!-- F letterform -->
+  <!-- Vertical bar -->
+  <rect x="14" y="13" width="9" height="38" rx="2.5" fill="white"/>
+  <!-- Top horizontal bar -->
+  <rect x="14" y="13" width="34" height="9" rx="2.5" fill="white"/>
+  <!-- Middle horizontal bar -->
+  <rect x="14" y="28" width="23" height="8" rx="2.5" fill="white"/>
+  <!-- Small green accent dot bottom-right -->
+  <circle cx="45.5" cy="46.5" r="6.5" fill="#00D98B"/>
+</svg>

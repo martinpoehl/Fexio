@@ -109,7 +109,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <div className="h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 bg-[#00875A] rounded-lg flex items-center justify-center text-white font-bold text-lg mx-auto mb-3 animate-pulse">f</div>
+          <img src="/logo.svg" alt="Fexio" className="w-10 h-10 mx-auto mb-3 animate-pulse" />
           <p className="text-gray-400 text-sm">Laden...</p>
         </div>
       </div>
@@ -242,7 +242,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <div className="ml-3 font-bold text-xl text-white tracking-tight">Fexio</div>
+            <div className="ml-3 flex items-center gap-2">
+              <img src="/logo.svg" alt="Fexio" className="w-7 h-7" />
+              <span className="font-bold text-xl text-white tracking-tight">Fexio</span>
+            </div>
           </div>
         </header>
 

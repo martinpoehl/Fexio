@@ -5,6 +5,11 @@ export const metadata: Metadata = {
   title: 'Fexio – Schweizer Business Software',
   description: 'Kostenlose bexio-Alternative für KMU, Freelancer und Startups',
   viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
