@@ -80,6 +80,10 @@ export default function InvoicesContent() {
   const [selectedTimeIds, setSelectedTimeIds] = useState<string[]>([])
   const [importedTimeEntryIds, setImportedTimeEntryIds] = useState<string[]>([])
 
+  // ─── Product import state ─────────────────────────────────────────────────────
+  const [showProductModal, setShowProductModal] = useState(false)
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([])
+
   // ─── Expenses import state ────────────────────────────────────────────────────
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [expenses, setExpenses] = useState<any[]>([])
@@ -370,16 +374,30 @@ export default function InvoicesContent() {
     })
   }
 
-  const applyProduct = (index: number, productId: string) => {
-    if (!productId) return
-    const product = products.find(p => p.id === productId)
-    if (!product) return
-    updateLine(index, {
-      description: product.name || '',
-      unit_price: Number(product.price) || 0,
-      unit: product.unit || 'Stk.',
-      tax_rate: Number(product.tax_rate) ?? 8.1,
+  const handleOpenProductModal = () => {
+    setSelectedProductIds([])
+    setShowProductModal(true)
+  }
+
+  const handleImportProducts = () => {
+    const toImport = products.filter(p => selectedProductIds.includes(p.id))
+    const newLines: LineItem[] = toImport.map((p, i) => {
+      const line: LineItem = {
+        position: lines.length + i + 1,
+        description: p.name || '',
+        quantity: 1,
+        unit: p.unit || 'Stk.',
+        unit_price: Number(p.price) || 0,
+        discount: 0,
+        tax_rate: Number(p.tax_rate) ?? 8.1,
+        total: 0,
+      }
+      line.total = calcLineTotal(line)
+      return line
     })
+    setLines(prev => [...prev, ...newLines])
+    setSelectedProductIds([])
+    setShowProductModal(false)
   }
 
   // ─── Save ────────────────────────────────────────────────────────────────────
@@ -847,6 +865,85 @@ export default function InvoicesContent() {
         </div>
       )}
 
+      {/* ─── Product import modal ────────────────────────────────────────────────── */}
+      {showProductModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <Package size={18} className="text-green-600" />
+                <h2 className="font-bold text-gray-900">Produkt importieren</h2>
+              </div>
+              <button onClick={() => setShowProductModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-4">
+              {products.length === 0 ? (
+                <p className="text-center text-gray-400 text-sm py-10">Keine Produkte vorhanden</p>
+              ) : (
+                <div className="space-y-1">
+                  {products.map(product => {
+                    const isSelected = selectedProductIds.includes(product.id)
+                    return (
+                      <label
+                        key={product.id}
+                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                          isSelected ? 'border-green-300 bg-green-50' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setSelectedProductIds(prev => [...prev, product.id])
+                            } else {
+                              setSelectedProductIds(prev => prev.filter(id => id !== product.id))
+                            }
+                          }}
+                          className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                          {product.description && (
+                            <p className="text-xs text-gray-500 truncate">{product.description}</p>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-semibold text-gray-700">{fCHF(Number(product.price) || 0)}</p>
+                          <p className="text-xs text-gray-400">{product.unit || 'Stk.'} · {product.tax_rate ?? 8.1}% MwSt.</p>
+                        </div>
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+              <span className="text-xs text-gray-500">{selectedProductIds.length} ausgewählt</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowProductModal(false)}
+                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Abbrechen
+                </button>
+                <button
+                  type="button"
+                  onClick={handleImportProducts}
+                  disabled={selectedProductIds.length === 0}
+                  className="flex items-center gap-2 px-5 py-2 bg-[#00875A] hover:bg-[#006B47] text-white rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50"
+                >
+                  <Plus size={15} /> Übernehmen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── Expenses import modal ───────────────────────────────────────────────── */}
       {showExpenseModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
@@ -1172,10 +1269,10 @@ export default function InvoicesContent() {
                     )}
                     <button
                       type="button"
-                      onClick={addLine}
+                      onClick={handleOpenProductModal}
                       className="flex items-center gap-1.5 text-xs font-semibold text-[#00875A] hover:text-[#006B47] transition-colors"
                     >
-                      <Plus size={14} /> Position hinzufügen
+                      <Package size={14} /> Produkt importieren
                     </button>
                   </div>
                 </div>
@@ -1195,34 +1292,14 @@ export default function InvoicesContent() {
                       key={idx}
                       className="grid grid-cols-1 md:grid-cols-[2fr_1fr_80px_1fr_80px_100px_90px_32px] gap-2 items-center bg-gray-50 rounded-lg p-2 border border-gray-100"
                     >
-                      {/* Product picker + description */}
-                      <div className="flex flex-col gap-1">
-                        <div className="relative">
-                          <Package
-                            size={12}
-                            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                          />
-                          <select
-                            defaultValue=""
-                            onChange={e => applyProduct(idx, e.target.value)}
-                            className="w-full pl-7 pr-2 py-1.5 border border-gray-200 rounded-md text-xs bg-white focus:outline-none focus:ring-1 focus:ring-green-500/30 text-gray-500"
-                          >
-                            <option value="">Produkt wählen…</option>
-                            {products.map(p => (
-                              <option key={p.id} value={p.id}>
-                                {p.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Beschreibung"
-                          value={line.description}
-                          onChange={e => updateLine(idx, { description: e.target.value })}
-                          className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
-                        />
-                      </div>
+                      {/* Description */}
+                      <input
+                        type="text"
+                        placeholder="Beschreibung"
+                        value={line.description}
+                        onChange={e => updateLine(idx, { description: e.target.value })}
+                        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
+                      />
 
                       {/* Quantity */}
                       <div className="flex items-center border border-gray-200 rounded-md overflow-hidden">
