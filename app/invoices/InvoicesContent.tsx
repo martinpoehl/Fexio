@@ -212,8 +212,8 @@ export default function InvoicesContent() {
       .from('time_entries')
       .select('*, projects(name)')
       .eq('company_id', companyId)
-      .neq('billable', false)
-      .neq('invoiced', true)
+      .or('billable.is.null,billable.eq.true')
+      .or('invoiced.is.null,invoiced.eq.false')
       .order('date', { ascending: false })
     setTimeEntries(data || [])
   }
