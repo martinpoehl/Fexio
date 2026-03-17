@@ -213,7 +213,7 @@ export default function InvoicesContent() {
       .select('*, projects(name)')
       .eq('company_id', companyId)
       .eq('billable', true)
-      .eq('invoiced', false)
+      .neq('invoiced', true)
       .order('date', { ascending: false })
     setTimeEntries(data || [])
   }
@@ -255,7 +255,7 @@ export default function InvoicesContent() {
       .from('expenses')
       .select('*')
       .eq('company_id', companyId)
-      .eq('invoiced', false)
+      .neq('invoiced', true)
       .order('date', { ascending: false })
     setExpenses(data || [])
   }
