@@ -51,8 +51,7 @@ export default function TimeContent() {
 
   // Default hourly rate
   const [defaultRate, setDefaultRate] = useState(0)
-  const [editingRate, setEditingRate] = useState(false)
-  const [rateInput, setRateInput] = useState('0')
+  const [rateInput, setRateInput] = useState('')
   const [companyId, setCompanyId] = useState<string | null>(null)
 
   // Timer state
@@ -296,57 +295,57 @@ export default function TimeContent() {
           <h1 className="text-[22px] font-bold text-gray-900">Zeiterfassung</h1>
           <p className="text-gray-400 text-sm mt-1">Erfasse deine Arbeitszeiten auf Projekten</p>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Default hourly rate */}
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
-            <Clock size={14} className="text-gray-400 shrink-0" />
-            <span className="text-xs text-gray-500 whitespace-nowrap">Standard-Stundensatz</span>
-            {editingRate ? (
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-gray-400">CHF</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="any"
-                  autoFocus
-                  value={rateInput}
-                  onChange={e => setRateInput(e.target.value)}
-                  onBlur={() => {
-                    const v = Number(rateInput) || 0
-                    setEditingRate(false)
-                    saveDefaultRate(v)
-                  }}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      const v = Number(rateInput) || 0
-                      setEditingRate(false)
-                      saveDefaultRate(v)
-                    }
-                    if (e.key === 'Escape') {
-                      setEditingRate(false)
-                      setRateInput(defaultRate > 0 ? String(defaultRate) : '')
-                    }
-                  }}
-                  className="w-20 text-sm font-semibold text-gray-900 border-b border-green-500 focus:outline-none bg-transparent text-right"
-                />
-                <span className="text-xs text-gray-400">/ Std.</span>
-              </div>
-            ) : (
-              <button
-                onClick={() => { setRateInput(defaultRate > 0 ? String(defaultRate) : ''); setEditingRate(true) }}
-                className="text-sm font-semibold text-gray-900 hover:text-green-700 transition-colors"
-              >
-                CHF {defaultRate > 0 ? defaultRate.toFixed(2) : '–'} / Std.
-              </button>
-            )}
+        <button
+          onClick={() => handleOpenModal()}
+          className="flex items-center gap-2 bg-[#00875A] hover:bg-[#006B47] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+        >
+          <Plus size={18} />
+          Manuell erfassen
+        </button>
+      </div>
+
+      {/* Default hourly rate card */}
+      <div className={`rounded-xl border-2 bg-white shadow-sm p-5 flex items-center justify-between gap-6 ${defaultRate === 0 ? 'border-amber-300 bg-amber-50/40' : 'border-gray-200'}`}>
+        <div className="flex items-center gap-4 min-w-0">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${defaultRate === 0 ? 'bg-amber-100' : 'bg-green-100'}`}>
+            <Clock size={18} className={defaultRate === 0 ? 'text-amber-600' : 'text-green-600'} />
           </div>
-          <button
-            onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 bg-[#00875A] hover:bg-[#006B47] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-          >
-            <Plus size={18} />
-            Manuell erfassen
-          </button>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900">Standard-Stundensatz</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {defaultRate === 0
+                ? 'Noch nicht festgelegt — wird für neue Zeiteinträge und Rechnungen verwendet'
+                : 'Wird automatisch für neue Zeiteinträge übernommen'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-sm font-medium text-gray-500">CHF</span>
+          <input
+            type="number"
+            min="0"
+            step="any"
+            value={rateInput}
+            onChange={e => setRateInput(e.target.value)}
+            onBlur={() => {
+              const v = Number(rateInput) || 0
+              saveDefaultRate(v)
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                const v = Number(rateInput) || 0
+                saveDefaultRate(v)
+                ;(e.target as HTMLInputElement).blur()
+              }
+            }}
+            placeholder="z.B. 120"
+            className={`w-28 px-3 py-2 border rounded-lg text-sm font-semibold text-right focus:outline-none focus:ring-2 transition-colors ${
+              defaultRate === 0
+                ? 'border-amber-300 bg-amber-50 focus:ring-amber-400/30 focus:border-amber-400 placeholder-amber-300'
+                : 'border-gray-200 bg-gray-50 focus:ring-green-500/20 focus:border-green-500'
+            }`}
+          />
+          <span className="text-sm text-gray-500">/ Std.</span>
         </div>
       </div>
 
