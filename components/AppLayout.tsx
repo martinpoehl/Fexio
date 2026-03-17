@@ -109,7 +109,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <div className="h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <img src="/logo.svg" alt="Fexio" className="w-10 h-10 mx-auto mb-3 animate-pulse" />
+          <svg width="40" height="40" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto mb-3 animate-pulse">
+            <defs>
+              <linearGradient id="load-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#1a56db"/>
+                <stop offset="1" stopColor="#00875A"/>
+              </linearGradient>
+            </defs>
+            <rect width="64" height="64" rx="13" fill="url(#load-bg)"/>
+            <rect x="14" y="13" width="9" height="38" rx="2.5" fill="white"/>
+            <rect x="14" y="13" width="34" height="9" rx="2.5" fill="white"/>
+            <rect x="14" y="28" width="23" height="8" rx="2.5" fill="white"/>
+            <circle cx="45.5" cy="46.5" r="6.5" fill="#00D98B"/>
+          </svg>
           <p className="text-gray-400 text-sm">Laden...</p>
         </div>
       </div>

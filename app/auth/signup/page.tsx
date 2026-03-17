@@ -18,35 +18,7 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
-
-    if (password !== confirmPw) {
-      setError('Passwörter stimmen nicht überein.')
-      return
-    }
-    if (password.length < 6) {
-      setError('Passwort muss mindestens 6 Zeichen haben.')
-      return
-    }
-
-    setLoading(true)
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-        data: { first_name: vorname, last_name: nachname, company: firma, full_name: `${vorname} ${nachname}`.trim() }
-      }
-    })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    } else {
-      setSuccess(true)
-      setLoading(false)
-    }
+    setError('Registrierungen sind momentan deaktiviert. Bitte kontaktiere uns direkt.')
   }
 
   if (success) {
@@ -76,7 +48,24 @@ export default function SignupPage() {
       {/* Logo */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-3 mb-3">
-          <img src="/logo.svg" alt="Fexio" className="w-10 h-10" />
+          <svg width="40" height="40" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="signup-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#1a56db"/>
+                <stop offset="1" stopColor="#00875A"/>
+              </linearGradient>
+              <linearGradient id="signup-shine" x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse">
+                <stop stopColor="white" stopOpacity="0.12"/>
+                <stop offset="1" stopColor="white" stopOpacity="0"/>
+              </linearGradient>
+            </defs>
+            <rect width="64" height="64" rx="13" fill="url(#signup-bg)"/>
+            <rect width="64" height="64" rx="13" fill="url(#signup-shine)"/>
+            <rect x="14" y="13" width="9" height="38" rx="2.5" fill="white"/>
+            <rect x="14" y="13" width="34" height="9" rx="2.5" fill="white"/>
+            <rect x="14" y="28" width="23" height="8" rx="2.5" fill="white"/>
+            <circle cx="45.5" cy="46.5" r="6.5" fill="#00D98B"/>
+          </svg>
           <span className="text-2xl font-bold text-gray-900">Fexio</span>
         </div>
         <p className="text-gray-500 text-sm">Kostenlos registrieren – keine Kreditkarte nötig</p>

@@ -82,7 +82,24 @@ export default function LoginPage() {
       {/* Logo */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-3 mb-3">
-          <img src="/logo.svg" alt="Fexio" className="w-10 h-10" />
+          <svg width="40" height="40" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="login-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#1a56db"/>
+                <stop offset="1" stopColor="#00875A"/>
+              </linearGradient>
+              <linearGradient id="login-shine" x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse">
+                <stop stopColor="white" stopOpacity="0.12"/>
+                <stop offset="1" stopColor="white" stopOpacity="0"/>
+              </linearGradient>
+            </defs>
+            <rect width="64" height="64" rx="13" fill="url(#login-bg)"/>
+            <rect width="64" height="64" rx="13" fill="url(#login-shine)"/>
+            <rect x="14" y="13" width="9" height="38" rx="2.5" fill="white"/>
+            <rect x="14" y="13" width="34" height="9" rx="2.5" fill="white"/>
+            <rect x="14" y="28" width="23" height="8" rx="2.5" fill="white"/>
+            <circle cx="45.5" cy="46.5" r="6.5" fill="#00D98B"/>
+          </svg>
           <span className="text-2xl font-bold text-gray-900">Fexio</span>
         </div>
         <p className="text-gray-500 text-sm">Schweizer Business Software für KMU</p>
