@@ -1,9 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+
+function SearchParamsWatcher({ onChange }: { onChange: (s: string) => void }) {
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    onChange(searchParams ? '?' + searchParams.toString() : '')
+  }, [searchParams])
+  return null
+}
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: 'grid' },
@@ -61,6 +69,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const [currentSearch, setCurrentSearch] = useState('')
   const supabase = createClient()
 
   useEffect(() => {
@@ -105,7 +114,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) => {
     const [hrefPath, hrefQuery] = href.split('?')
     if (pathname !== hrefPath && !pathname?.startsWith(hrefPath + '/')) return false
-    const current = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+    const current = new URLSearchParams(currentSearch)
     if (!hrefQuery) {
       if (hrefPath === '/invoices') return !current.get('type')
       return true
@@ -144,6 +153,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden relative">
+      <Suspense fallback={null}>
+        <SearchParamsWatcher onChange={setCurrentSearch} />
+      </Suspense>
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div 
