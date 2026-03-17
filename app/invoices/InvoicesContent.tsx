@@ -212,7 +212,7 @@ export default function InvoicesContent() {
       .from('time_entries')
       .select('*, projects(name)')
       .eq('company_id', companyId)
-      .eq('billable', true)
+      .neq('billable', false)
       .neq('invoiced', true)
       .order('date', { ascending: false })
     setTimeEntries(data || [])
@@ -255,9 +255,9 @@ export default function InvoicesContent() {
       .from('expenses')
       .select('*')
       .eq('company_id', companyId)
-      .neq('invoiced', true)
       .order('date', { ascending: false })
-    setExpenses(data || [])
+    // filter client-side so missing invoiced column (pre-migration) doesn't break the query
+    setExpenses((data || []).filter((e: any) => e.invoiced !== true))
   }
 
   const handleOpenExpenseModal = async () => {
