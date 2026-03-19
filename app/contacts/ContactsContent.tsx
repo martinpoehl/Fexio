@@ -131,8 +131,17 @@ export default function ContactsContent() {
         ? await supabase.from('contacts').update(payload).eq('id', editingContact.id)
         : await supabase.from('contacts').insert([payload])
 
-      // Fallback: DB hasn't been migrated yet — retry without unknown columns
-      if (error?.message?.includes('first_name') || error?.message?.includes('last_name') || error?.message?.includes('customer_number')) {
+      // Fallback: customer_number column not migrated yet — retry without it
+      if (error?.message?.includes('customer_number')) {
+        const { customer_number: _cn, ...withoutCN } = payload
+        const fallback = { ...withoutCN, company_id: companyId, name: combinedName };
+        ({ error } = editingContact
+          ? await supabase.from('contacts').update(fallback).eq('id', editingContact.id)
+          : await supabase.from('contacts').insert([fallback]))
+      }
+
+      // Fallback: first_name/last_name columns not migrated yet
+      if (error?.message?.includes('first_name') || error?.message?.includes('last_name')) {
         const fallback: any = {
           company_id: companyId,
           name: combinedName,
