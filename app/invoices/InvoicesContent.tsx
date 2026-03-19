@@ -500,7 +500,9 @@ export default function InvoicesContent() {
   const handleDelete = async (id: string) => {
     if (!confirm('Wirklich löschen?')) return
     try {
-      // Lines should cascade-delete via FK; if not, delete explicitly first
+      // Release linked time entries and expenses so they can be re-imported
+      await supabase.from('time_entries').update({ invoiced: false, invoice_id: null }).eq('invoice_id', id)
+      await supabase.from('expenses').update({ invoiced: false, invoice_id: null }).eq('invoice_id', id)
       await supabase.from('document_lines').delete().eq('document_id', id)
       const { error } = await supabase.from('documents').delete().eq('id', id)
       if (error) throw error
