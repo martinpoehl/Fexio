@@ -144,9 +144,18 @@ export default function InvoicesContent() {
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
-  const prefixes: Record<string, string> = { invoice: 'RE', offer: 'OF', order: 'AU' }
+  const prefixes: Record<string, string> = { invoice: 'RE', offer: 'OF', order: 'AR' }
 
   const generateNumber = () => {
+    if (typeFilter === 'order') {
+      const arNumbers = documents
+        .map((d: any) => d.number)
+        .filter((n: string) => n && n.startsWith('AR-'))
+        .map((n: string) => parseInt(n.replace('AR-', ''), 10))
+        .filter((n: number) => !isNaN(n))
+      const maxNum = arNumbers.length > 0 ? Math.max(...arNumbers) : 4449
+      return `AR-${maxNum + 1}`
+    }
     const year = new Date().getFullYear()
     const seq = String(documents.length + 1).padStart(3, '0')
     return `${prefixes[typeFilter]}-${year}-${seq}`
