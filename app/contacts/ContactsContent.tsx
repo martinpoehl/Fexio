@@ -32,6 +32,7 @@ export default function ContactsContent() {
     country: 'CH',
     uid_nr: '',
     website: '',
+    customer_number: '',
     type: 'kunde',
     notes: ''
   })
@@ -79,6 +80,7 @@ export default function ContactsContent() {
         country: contact.country || 'CH',
         uid_nr: contact.uid_nr || '',
         website: contact.website || '',
+        customer_number: contact.customer_number || '',
         type: contact.type || 'kunde',
         notes: contact.notes || ''
       })
@@ -98,6 +100,7 @@ export default function ContactsContent() {
         country: 'CH',
         uid_nr: '',
         website: '',
+        customer_number: '',
         type: 'kunde',
         notes: ''
       })
@@ -470,6 +473,15 @@ export default function ContactsContent() {
                     onChange={e => setFormData({...formData, uid_nr: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                     placeholder="CHE-123.456.789"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Kundennummer</label>
+                  <input
+                    value={formData.customer_number}
+                    onChange={e => setFormData({...formData, customer_number: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                    placeholder="K-1000"
                   />
                 </div>
                 <div>

@@ -47,6 +47,7 @@ interface InvoicePDFProps {
     zip?: string
     city?: string
     email?: string
+    customer_number?: string
   } | null
   logoBase64?: string | null
 }
@@ -417,6 +418,12 @@ export function InvoicePDF({
                 <View style={styles.metaRow}>
                   <Text style={styles.metaLabel}>Fällig:</Text>
                   <Text style={styles.metaValue}>{fDate(doc.due_date)}</Text>
+                </View>
+              )}
+              {contact?.customer_number && (
+                <View style={styles.metaRow}>
+                  <Text style={styles.metaLabel}>Kundennr.:</Text>
+                  <Text style={styles.metaValue}>{contact.customer_number}</Text>
                 </View>
               )}
             </View>

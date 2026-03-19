@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     if (doc.contact_id) {
       const { data: contactData } = await supabase
         .from('contacts')
-        .select('first_name, last_name, firm, address, zip, city, email')
+        .select('first_name, last_name, firm, address, zip, city, email, customer_number')
         .eq('id', doc.contact_id)
         .single()
       contact = contactData || null
