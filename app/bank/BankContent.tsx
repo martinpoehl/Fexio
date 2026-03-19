@@ -101,15 +101,9 @@ const fCurrency = (amount: number, currency = 'CHF') =>
 
 const fDate = (d: string) => {
   if (!d) return ''
-  const dt = new Date(d)
-  if (isNaN(dt.getTime())) return d
-  return (
-    String(dt.getDate()).padStart(2, '0') +
-    '.' +
-    String(dt.getMonth() + 1).padStart(2, '0') +
-    '.' +
-    dt.getFullYear()
-  )
+  const [y, m, day] = d.split('-')
+  if (!y || !m || !day) return d
+  return `${day}.${m}.${y}`
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────

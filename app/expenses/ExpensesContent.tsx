@@ -207,8 +207,8 @@ export default function ExpensesContent() {
   const fCHF = (n: number) => new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF' }).format(n)
   const fD = (d: string) => {
     if (!d) return ''
-    const dt = new Date(d)
-    return String(dt.getDate()).padStart(2, '0') + '.' + String(dt.getMonth() + 1).padStart(2, '0') + '.' + dt.getFullYear()
+    const [y, m, day] = d.split('-')
+    return `${day}.${m}.${y}`
   }
 
   const getReceiptFilename = (url: string) => {

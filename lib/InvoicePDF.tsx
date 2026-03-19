@@ -314,14 +314,8 @@ function fCHF(n: number): string {
 
 function fDate(d?: string): string {
   if (!d) return '–'
-  const dt = new Date(d)
-  return (
-    String(dt.getDate()).padStart(2, '0') +
-    '.' +
-    String(dt.getMonth() + 1).padStart(2, '0') +
-    '.' +
-    dt.getFullYear()
-  )
+  const [y, m, day] = d.split('-')
+  return `${day}.${m}.${y}`
 }
 
 function docTypeLabel(type: string): string {

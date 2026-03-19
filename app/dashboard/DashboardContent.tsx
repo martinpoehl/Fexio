@@ -133,8 +133,8 @@ export default function DashboardContent() {
   const fDur = (m: number) => Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + 'min'
   const fD = (d: string) => {
     if (!d) return ''
-    const dt = new Date(d)
-    return String(dt.getDate()).padStart(2, '0') + '.' + String(dt.getMonth() + 1).padStart(2, '0') + '.' + dt.getFullYear()
+    const [y, m, day] = d.split('-')
+    return `${day}.${m}.${y}`
   }
 
   const statusColors: Record<string, string> = {
