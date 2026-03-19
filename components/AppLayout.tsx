@@ -25,7 +25,7 @@ const navItems = [
   },
   {
     label: 'Einkauf', icon: 'receipt', children: [
-      { href: '/expenses', label: 'Aufwendungen' },
+      { href: '/expenses', label: 'Ausgaben' },
     ]
   },
   {

@@ -423,7 +423,7 @@ export default function MwstPage() {
                     <div>
                       <div className="text-[13px] font-semibold text-gray-900">Vorsteuer aus Lieferungen und Leistungen</div>
                       <div className="text-[11px] text-gray-400 mt-0.5">
-                        MwSt auf Aufwendungen (8.1% auf {report.expenses.length} Ausgaben, Brutto: {fCHF(report.expenses.reduce((s, e) => s + e.amount, 0))})
+                        MwSt auf Ausgaben (8.1% auf {report.expenses.length} Ausgaben, Brutto: {fCHF(report.expenses.reduce((s, e) => s + e.amount, 0))})
                       </div>
                     </div>
                   </div>

@@ -231,7 +231,7 @@ export default function DashboardContent() {
       <div className="flex gap-3.5 flex-wrap mb-6">
         <StatCard label="Umsatz (bezahlt)" value={fCHF(stats.revenue)} color="text-green-700" href="/invoices" />
         <StatCard label="Offene Rechnungen" value={fCHF(stats.outstanding)} color="text-amber-600" href="/invoices" />
-        <StatCard label="Aufwendungen" value={fCHF(stats.expenses)} color="text-red-600" href="/expenses" />
+        <StatCard label="Ausgaben" value={fCHF(stats.expenses)} color="text-red-600" href="/expenses" />
         <StatCard label="Stunden (Woche)" value={fDur(stats.weekMinutes)} color="text-blue-600" href="/time" />
       </div>
 
