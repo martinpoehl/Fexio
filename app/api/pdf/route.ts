@@ -55,12 +55,22 @@ export async function GET(request: NextRequest) {
     // ── Fetch contact info ──────────────────────────────────────────────────
     let contact = null
     if (doc.contact_id) {
-      const { data: contactData } = await supabase
+      const { data: contactData, error: contactError } = await supabase
         .from('contacts')
         .select('first_name, last_name, firm, address, zip, city, email, customer_number')
         .eq('id', doc.contact_id)
         .single()
-      contact = contactData || null
+      if (contactError) {
+        // Fallback if customer_number column doesn't exist yet
+        const { data: fallbackData } = await supabase
+          .from('contacts')
+          .select('first_name, last_name, firm, address, zip, city, email')
+          .eq('id', doc.contact_id)
+          .single()
+        contact = fallbackData || null
+      } else {
+        contact = contactData || null
+      }
     }
 
     // ── Fetch logo as base64 (optional) ────────────────────────────────────
