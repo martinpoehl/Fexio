@@ -156,6 +156,13 @@ export default function InvoicesContent() {
       const maxNum = arNumbers.length > 0 ? Math.max(...arNumbers) : 4449
       return `AR-${maxNum + 1}`
     }
+    if (typeFilter === 'invoice') {
+      const nums = documents
+        .map((d: any) => parseInt(d.number, 10))
+        .filter((n: number) => !isNaN(n))
+      const maxNum = nums.length > 0 ? Math.max(...nums) : 0
+      return String(maxNum + 1).padStart(3, '0')
+    }
     const year = new Date().getFullYear()
     const seq = String(documents.length + 1).padStart(3, '0')
     return `${prefixes[typeFilter]}-${year}-${seq}`
