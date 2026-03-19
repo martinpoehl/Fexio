@@ -123,8 +123,8 @@ export default function ContactsContent() {
         ? await supabase.from('contacts').update(payload).eq('id', editingContact.id)
         : await supabase.from('contacts').insert([payload])
 
-      // Fallback: DB hasn't been migrated yet — retry with only known columns
-      if (error?.message?.includes('first_name') || error?.message?.includes('last_name')) {
+      // Fallback: DB hasn't been migrated yet — retry without unknown columns
+      if (error?.message?.includes('first_name') || error?.message?.includes('last_name') || error?.message?.includes('customer_number')) {
         const fallback: any = {
           company_id: companyId,
           name: combinedName,
