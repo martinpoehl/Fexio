@@ -229,24 +229,21 @@ export default function InvoicesContent() {
 
   const handleImportTimeEntries = () => {
     const toImport = timeEntries.filter(e => selectedTimeIds.includes(e.id))
-    const newLines: LineItem[] = toImport.map((e, i) => {
-      const hours = Math.round((e.duration_minutes / 60) * 100) / 100
-      const projectName = e.projects?.name ? ` (${e.projects.name})` : ''
-      const desc = (e.description || 'Arbeitszeit') + projectName
-      const line: LineItem = {
-        position: lines.length + i + 1,
-        description: desc,
-        quantity: hours,
-        unit: 'Std.',
-        unit_price: Number(e.hourly_rate) || 0,
-        discount: 0,
-        tax_rate: 8.1,
-        total: 0,
-      }
-      line.total = calcLineTotal(line)
-      return line
-    })
-    setLines(prev => [...prev, ...newLines])
+    const totalHours = Math.round(toImport.reduce((sum, e) => sum + e.duration_minutes / 60, 0) * 100) / 100
+    const totalAmount = toImport.reduce((sum, e) => sum + (e.duration_minutes / 60) * (Number(e.hourly_rate) || 0), 0)
+    const effectiveRate = totalHours > 0 ? Math.round((totalAmount / totalHours) * 100) / 100 : 0
+    const aufwandLine: LineItem = {
+      position: lines.length + 1,
+      description: 'Aufwand',
+      quantity: totalHours,
+      unit: 'Std.',
+      unit_price: effectiveRate,
+      discount: 0,
+      tax_rate: 8.1,
+      total: 0,
+    }
+    aufwandLine.total = calcLineTotal(aufwandLine)
+    setLines(prev => [...prev, aufwandLine])
     setImportedTimeEntryIds(prev => [...prev, ...selectedTimeIds])
     setSelectedTimeIds([])
     setShowTimeModal(false)
