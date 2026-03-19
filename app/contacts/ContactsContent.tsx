@@ -86,6 +86,14 @@ export default function ContactsContent() {
       })
     } else {
       setEditingContact(null)
+      const yy = String(new Date().getFullYear()).slice(-2)
+      const prefix = `${yy}-`
+      const existing = contacts
+        .map(c => c.customer_number || '')
+        .filter(n => n.startsWith(prefix))
+        .map(n => parseInt(n.replace(prefix, ''), 10))
+        .filter(n => !isNaN(n))
+      const nextNum = existing.length > 0 ? Math.max(...existing) + 1 : 1030
       setFormData({
         contact_type: 'firma',
         first_name: '',
@@ -100,7 +108,7 @@ export default function ContactsContent() {
         country: 'CH',
         uid_nr: '',
         website: '',
-        customer_number: '',
+        customer_number: `${prefix}${nextNum}`,
         type: 'kunde',
         notes: ''
       })
