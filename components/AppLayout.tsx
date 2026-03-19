@@ -19,7 +19,7 @@ const navItems = [
   {
     label: 'Verkauf', icon: 'file-text', children: [
       { href: '/invoices?type=offer', label: 'Offerten' },
-      { href: '/invoices?type=order', label: 'Aufträge' },
+      { href: '/invoices?type=order', label: 'Rapporte' },
       { href: '/invoices', label: 'Rechnungen' },
     ]
   },

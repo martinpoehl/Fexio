@@ -535,7 +535,7 @@ export default function InvoicesContent() {
     const typeLabelsEmail: Record<string, string> = {
       invoice: 'Rechnung',
       offer: 'Offerte',
-      order: 'Auftrag',
+      order: 'Rapport',
     }
     const docLabel = typeLabelsEmail[doc.type] || 'Dokument'
 
@@ -594,7 +594,7 @@ export default function InvoicesContent() {
   const typeLabels: Record<string, string> = {
     invoice: 'Rechnungen',
     offer: 'Offerten',
-    order: 'Aufträge',
+    order: 'Rapporte',
   }
 
   const statusStyles: Record<string, string> = {
@@ -640,7 +640,7 @@ export default function InvoicesContent() {
             ? 'Rechnung'
             : typeFilter === 'offer'
             ? 'Offerte'
-            : 'Auftrag'}{' '}
+            : 'Rapport'}{' '}
           erstellen
         </button>
       </div>
@@ -1034,7 +1034,7 @@ export default function InvoicesContent() {
                 <Mail size={18} className="text-blue-500" />
                 <h2 className="font-bold text-gray-900">
                   {emailDoc
-                    ? `${emailDoc.type === 'invoice' ? 'Rechnung' : emailDoc.type === 'offer' ? 'Offerte' : 'Auftrag'} senden`
+                    ? `${emailDoc.type === 'invoice' ? 'Rechnung' : emailDoc.type === 'offer' ? 'Offerte' : 'Rapport'} senden`
                     : 'E-Mail senden'}
                 </h2>
               </div>
@@ -1145,7 +1145,7 @@ export default function InvoicesContent() {
               <h2 className="font-bold text-gray-900">
                 {editingDoc
                   ? `${typeLabels[typeFilter].slice(0, -1)} bearbeiten`
-                  : `Neue${typeFilter === 'invoice' ? ' Rechnung' : typeFilter === 'offer' ? ' Offerte' : 'r Auftrag'}`}
+                  : `Neue${typeFilter === 'invoice' ? ' Rechnung' : typeFilter === 'offer' ? ' Offerte' : 'r Rapport'}`}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
                 <X size={20} />

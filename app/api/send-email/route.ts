@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
   const typeLabels: Record<string, string> = {
     invoice: 'Rechnung',
     offer: 'Offerte',
-    order: 'Auftrag',
+    order: 'Rapport',
   }
   const docTypeLabel = typeLabels[doc.type] || 'Dokument'
 
