@@ -419,10 +419,6 @@ export function InvoicePDF({
                   <Text style={styles.metaValue}>{fDate(doc.due_date)}</Text>
                 </View>
               )}
-              <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>Status:</Text>
-                <Text style={styles.metaValue}>{doc.status}</Text>
-              </View>
             </View>
           </View>
 
