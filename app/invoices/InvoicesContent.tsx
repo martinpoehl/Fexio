@@ -344,7 +344,7 @@ export default function InvoicesContent() {
         status: 'entwurf',
         notes: '',
       })
-      setLines([emptyLine(1)])
+      setLines([])
     }
     setShowModal(true)
   }
