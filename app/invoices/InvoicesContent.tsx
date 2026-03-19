@@ -1249,7 +1249,7 @@ export default function InvoicesContent() {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Positionen</h3>
                   <div className="flex items-center gap-3">
-                    {typeFilter === 'invoice' && (
+                    {(typeFilter === 'invoice' || typeFilter === 'order') && (
                       <>
                         <button
                           type="button"
