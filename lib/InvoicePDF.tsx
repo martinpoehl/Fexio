@@ -632,7 +632,7 @@ export function InvoicePDF({
               <View style={styles.sectionTable}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, styles.rColDatum]}>Datum</Text>
-                  <Text style={[styles.sectionTitle, styles.rColZeit]}>Zeit h</Text>
+                  <Text style={[styles.sectionTitle, styles.rColZeit]}>Zeit in h</Text>
                   <Text style={[styles.sectionTitle, styles.rColArbeiter]}>Arbeiter</Text>
                   <Text style={[styles.sectionTitle, styles.rColStundensatz]}>Stundensatz</Text>
                   <Text style={[styles.sectionTitle, styles.rColTaetigkeit]}>Tätigkeit</Text>
