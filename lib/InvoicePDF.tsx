@@ -418,7 +418,7 @@ export function InvoicePDF({
                 </View>
               )}
               <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>Datum:</Text>
+                <Text style={styles.metaLabel}>Rechnungsdatum:</Text>
                 <Text style={styles.metaValue}>{fDate(doc.date)}</Text>
               </View>
               {doc.service_period && (
