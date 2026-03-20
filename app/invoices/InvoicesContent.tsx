@@ -1305,7 +1305,7 @@ export default function InvoicesContent() {
                             const iso = displayToIso(e.target.value)
                             if (iso) setFormData({ ...formData, date: iso })
                           }}
-                          className="w-[110px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                          className="w-[135px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                         />
                         <label className="absolute right-2 cursor-pointer text-gray-400 hover:text-gray-600">
                           <Calendar size={13} />
@@ -1326,7 +1326,7 @@ export default function InvoicesContent() {
                               const iso = displayToIso(e.target.value)
                               if (iso) setFormData({ ...formData, due_date: iso })
                             }}
-                            className="w-[110px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                            className="w-[135px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                           />
                           <label className="absolute right-2 cursor-pointer text-gray-400 hover:text-gray-600">
                             <Calendar size={13} />
@@ -1350,7 +1350,7 @@ export default function InvoicesContent() {
                                 setSpFrom(iso)
                                 setFormData({ ...formData, service_period: fmtServicePeriod(iso, spTo) })
                               }}
-                              className="w-[110px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                              className="w-[135px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                             />
                             <label className="absolute right-2 cursor-pointer text-gray-400 hover:text-gray-600">
                               <Calendar size={13} />
@@ -1369,7 +1369,7 @@ export default function InvoicesContent() {
                                 setSpTo(iso)
                                 setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, iso) })
                               }}
-                              className="w-[110px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                              className="w-[135px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                             />
                             <label className="absolute right-2 cursor-pointer text-gray-400 hover:text-gray-600">
                               <Calendar size={13} />
