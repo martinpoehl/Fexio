@@ -391,9 +391,6 @@ export function InvoicePDF({
 
         {/* ── Main content ── */}
         <View style={styles.content}>
-          {/* Document title */}
-          <Text style={styles.docTitle}>{docTypeLabel(doc.type)}</Text>
-
           {/* Address + meta row */}
           <View style={styles.addressMetaRow}>
             {/* Recipient */}
