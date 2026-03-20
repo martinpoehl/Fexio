@@ -365,11 +365,10 @@ const styles = StyleSheet.create({
   },
 
   // Rapport column widths – Ausgeführte Arbeiten
-  rColDatum:       { width: 52 },
-  rColMenge:       { width: 36, textAlign: 'right' },
-  rColEinheit:     { width: 36 },
-  rColArbeiter:    { width: 60 },
-  rColStundensatz: { width: 60, textAlign: 'right' },
+  rColDatum:       { width: 58 },
+  rColZeit:        { width: 40, textAlign: 'right' },
+  rColArbeiter:    { width: 65 },
+  rColStundensatz: { width: 62, textAlign: 'right' },
   rColTaetigkeit:  { flex: 1 },
   rColKosten:      { width: 65, textAlign: 'right' },
 
@@ -633,8 +632,7 @@ export function InvoicePDF({
               <View style={styles.sectionTable}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, styles.rColDatum]}>Datum</Text>
-                  <Text style={[styles.sectionTitle, styles.rColMenge]}>Menge</Text>
-                  <Text style={[styles.sectionTitle, styles.rColEinheit]}>Einheit</Text>
+                  <Text style={[styles.sectionTitle, styles.rColZeit]}>Zeit h</Text>
                   <Text style={[styles.sectionTitle, styles.rColArbeiter]}>Arbeiter</Text>
                   <Text style={[styles.sectionTitle, styles.rColStundensatz]}>Stundensatz</Text>
                   <Text style={[styles.sectionTitle, styles.rColTaetigkeit]}>Tätigkeit</Text>
@@ -643,8 +641,7 @@ export function InvoicePDF({
                 {arbeitenLines.map((l, i) => (
                   <View key={i} style={[styles.sectionRow, i % 2 === 0 ? styles.sectionRowEven : styles.sectionRowOdd]}>
                     <Text style={[styles.sectionCell, styles.rColDatum]}></Text>
-                    <Text style={[styles.sectionCell, styles.rColMenge]}>{fNum(l.quantity)}</Text>
-                    <Text style={[styles.sectionCell, styles.rColEinheit]}>{l.unit}</Text>
+                    <Text style={[styles.sectionCell, styles.rColZeit]}>{fNum(l.quantity)}</Text>
                     <Text style={[styles.sectionCell, styles.rColArbeiter]}></Text>
                     <Text style={[styles.sectionCell, styles.rColStundensatz]}>{fNum(l.unit_price)}</Text>
                     <Text style={[styles.sectionCell, styles.rColTaetigkeit]}>{l.description}</Text>
