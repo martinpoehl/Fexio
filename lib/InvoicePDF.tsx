@@ -418,7 +418,7 @@ export function InvoicePDF({
             {/* Meta */}
             <View style={styles.metaBlock}>
               <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>{docTitle}nr.:</Text>
+                <Text style={styles.metaLabel}>{docTitle}nummer:</Text>
                 <Text style={styles.metaValue}>{doc.number}</Text>
               </View>
               <View style={styles.metaRow}>
@@ -433,7 +433,7 @@ export function InvoicePDF({
               )}
               {contact?.customer_number && (
                 <View style={styles.metaRow}>
-                  <Text style={styles.metaLabel}>Kundennr.:</Text>
+                  <Text style={styles.metaLabel}>Kundennummer:</Text>
                   <Text style={styles.metaValue}>{contact.customer_number}</Text>
                 </View>
               )}
