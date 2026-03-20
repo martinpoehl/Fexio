@@ -89,15 +89,15 @@ const styles = StyleSheet.create({
     backgroundColor: NAVY,
   },
   logoWrapper: {
-    width: 80,
-    height: 50,
+    width: 99,
+    height: 99,
     marginRight: 16,
     justifyContent: 'center',
   },
   logoFull: {
-    width: '100%',
+    width: 99,
     height: 99,
-    objectFit: 'cover',
+    objectFit: 'contain',
   },
   logo: {
     maxWidth: 80,
@@ -377,29 +377,28 @@ export function InvoicePDF({
     <Document>
       <Page size="A4" style={styles.page}>
         {/* ── Header band ── */}
-        {logoSrc ? (
-          <View style={styles.headerBandLogo}>
-            <Image src={logoSrc} style={styles.logoFull} />
-          </View>
-        ) : (
-          <View style={styles.headerBand}>
-            <View style={styles.companyInfo}>
-              <Text style={styles.companyName}>{company.name}</Text>
-              {companyAddress ? (
-                <Text style={styles.companyDetail}>{companyAddress}</Text>
-              ) : null}
-              {company.email ? (
-                <Text style={styles.companyDetail}>{company.email}</Text>
-              ) : null}
-              {company.phone ? (
-                <Text style={styles.companyDetail}>{company.phone}</Text>
-              ) : null}
-              {company.uid_nr ? (
-                <Text style={styles.companyDetail}>UID: {company.uid_nr}</Text>
-              ) : null}
+        <View style={styles.headerBand}>
+          {logoSrc && (
+            <View style={styles.logoWrapper}>
+              <Image src={logoSrc} style={styles.logoFull} />
             </View>
+          )}
+          <View style={styles.companyInfo}>
+            <Text style={styles.companyName}>{company.name}</Text>
+            {companyAddress ? (
+              <Text style={styles.companyDetail}>{companyAddress}</Text>
+            ) : null}
+            {company.email ? (
+              <Text style={styles.companyDetail}>{company.email}</Text>
+            ) : null}
+            {company.phone ? (
+              <Text style={styles.companyDetail}>{company.phone}</Text>
+            ) : null}
+            {company.uid_nr ? (
+              <Text style={styles.companyDetail}>UID: {company.uid_nr}</Text>
+            ) : null}
           </View>
-        )}
+        </View>
 
         {/* ── Main content ── */}
         <View style={styles.content}>
