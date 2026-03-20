@@ -802,8 +802,8 @@ export default function InvoicesContent() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-[13px] text-gray-600">
-                      {doc.due_date ? fD(doc.due_date) : '–'}
+                    <div className="text-[13px] text-gray-600 flex items-center gap-1.5">
+                      <Calendar size={12} className="text-gray-400" /> {doc.due_date ? fD(doc.due_date) : '–'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
