@@ -665,7 +665,7 @@ export function InvoicePDF({
                   <Text style={[styles.sectionTitle, styles.mColBeschrieb]}>Beschrieb</Text>
                   <Text style={[styles.sectionTitle, styles.mColMenge]}>Menge</Text>
                   <Text style={[styles.sectionTitle, styles.mColEinheit]}>Einheit</Text>
-                  <Text style={[styles.sectionTitle, styles.mColStueckpreis]}>Stückpreis</Text>
+                  <Text style={[styles.sectionTitle, styles.mColStueckpreis]}>Stückzahl</Text>
                   <Text style={[styles.sectionTitle, styles.mColKosten]}>Kosten</Text>
                 </View>
                 {materialLines.map((l, i) => (
