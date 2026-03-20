@@ -1353,31 +1353,33 @@ export default function InvoicesContent() {
                     </div>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Verknüpfter Rapport</label>
-                  {typeFilter === 'invoice' && rapporte.length > 0 ? (
-                    <select
-                      value={formData.reference}
-                      onChange={e => setFormData({ ...formData, reference: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 bg-white"
-                    >
-                      <option value="">– Kein Rapport –</option>
-                      {rapporte.map(r => (
-                        <option key={r.id} value={r.number}>
-                          {r.number}{r.title ? ` – ${r.title}` : ''}{r.contact_name ? ` (${r.contact_name})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      value={formData.reference}
-                      onChange={e => setFormData({ ...formData, reference: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                      placeholder="z.B. AR-0012"
-                    />
-                  )}
-                </div>
+                {typeFilter === 'invoice' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Verknüpfter Rapport</label>
+                    {rapporte.length > 0 ? (
+                      <select
+                        value={formData.reference}
+                        onChange={e => setFormData({ ...formData, reference: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 bg-white"
+                      >
+                        <option value="">– Kein Rapport –</option>
+                        {rapporte.map(r => (
+                          <option key={r.id} value={r.number}>
+                            {r.number}{r.title ? ` – ${r.title}` : ''}{r.contact_name ? ` (${r.contact_name})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={formData.reference}
+                        onChange={e => setFormData({ ...formData, reference: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                        placeholder="z.B. AR-0012"
+                      />
+                    )}
+                  </div>
+                )}
                 <div className="col-span-2 sm:col-span-3">
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Notizen</label>
                   <textarea
