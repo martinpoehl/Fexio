@@ -15,7 +15,7 @@ function SearchParamsWatcher({ onChange }: { onChange: (s: string) => void }) {
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: 'grid' },
-  { href: '/contacts', label: 'Kontakte', icon: 'users' },
+  { href: '/contacts', label: 'Kunden', icon: 'users' },
   {
     label: 'Verkauf', icon: 'file-text', children: [
       { href: '/invoices?type=offer', label: 'Offerten' },

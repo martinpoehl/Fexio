@@ -5,13 +5,10 @@ import { createClient } from '@/lib/supabase-browser'
 import { getOrCreateCompanyId } from '@/lib/getOrCreateCompany'
 import { Plus, Search, MoreHorizontal, Edit2, Trash2, Mail, Phone, Building2, X } from 'lucide-react'
 
-type ContactFilter = 'alle' | 'kunden' | 'lieferanten' | 'partner'
-
 export default function ContactsContent() {
   const [contacts, setContacts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [contactFilter, setContactFilter] = useState<ContactFilter>('alle')
   const [showModal, setShowModal] = useState(false)
   const [editingContact, setEditingContact] = useState<any>(null)
   const [saving, setSaving] = useState(false)
@@ -183,65 +180,32 @@ export default function ContactsContent() {
     }
   }
 
-  const filterButtons: { key: ContactFilter; label: string }[] = [
-    { key: 'alle', label: 'Alle' },
-    { key: 'kunden', label: 'Kunden' },
-    { key: 'lieferanten', label: 'Lieferanten' },
-    { key: 'partner', label: 'Partner' },
-  ]
-
-  const filteredContacts = contacts.filter(c => {
-    const matchesSearch =
-      (c.first_name && c.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.last_name && c.last_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.firm && c.firm.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase()))
-
-    const matchesFilter =
-      contactFilter === 'alle' ||
-      (contactFilter === 'kunden' && c.type === 'kunde') ||
-      (contactFilter === 'lieferanten' && c.type === 'lieferant') ||
-      (contactFilter === 'partner' && c.type === 'partner')
-
-    return matchesSearch && matchesFilter
-  })
+  const filteredContacts = contacts.filter(c =>
+    (c.first_name && c.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.last_name && c.last_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.firm && c.firm.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  )
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[22px] font-bold text-gray-900">Kontakte</h1>
-          <p className="text-gray-400 text-sm mt-1">Verwalte deine Kunden und Lieferanten</p>
+          <h1 className="text-[22px] font-bold text-gray-900">Kunden</h1>
+          <p className="text-gray-400 text-sm mt-1">Verwalte deine Kunden</p>
         </div>
         <button
           onClick={() => handleOpenModal()}
           className="flex items-center gap-2 bg-[#00875A] hover:bg-[#006B47] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
         >
           <Plus size={18} />
-          Kontakt hinzufügen
+          Kunde hinzufügen
         </button>
       </div>
 
-      {/* Filters & Search */}
-      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-3">
-        {/* Filter pills */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {filterButtons.map(btn => (
-            <button
-              key={btn.key}
-              onClick={() => setContactFilter(btn.key)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${
-                contactFilter === btn.key
-                  ? 'bg-[#00875A] text-white border-[#00875A]'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              {btn.label}
-            </button>
-          ))}
-        </div>
-        {/* Search */}
+      {/* Search */}
+      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
@@ -275,7 +239,7 @@ export default function ContactsContent() {
               </tr>
             ) : filteredContacts.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Kontakte gefunden</td>
+                <td colSpan={7} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Kunden gefunden</td>
               </tr>
             ) : (
               filteredContacts.map(contact => (
@@ -346,7 +310,7 @@ export default function ContactsContent() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <h2 className="font-bold text-gray-900">
-                {editingContact ? 'Kontakt bearbeiten' : 'Neuer Kontakt'}
+                {editingContact ? 'Kunde bearbeiten' : 'Neuer Kunde'}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
                 <X size={20} />
@@ -500,18 +464,6 @@ export default function ContactsContent() {
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                     placeholder="K-1000"
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Typ</label>
-                  <select
-                    value={formData.type}
-                    onChange={e => setFormData({...formData, type: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                  >
-                    <option value="kunde">Kunde</option>
-                    <option value="lieferant">Lieferant</option>
-                    <option value="partner">Partner</option>
-                  </select>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Notizen</label>
