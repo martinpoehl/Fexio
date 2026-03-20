@@ -363,7 +363,7 @@ export function InvoicePDF({
   logoBase64,
 }: InvoicePDFProps) {
   const isRapport = doc.type === 'order'
-  const docTitle = isRapport ? 'Rapport' : 'Rechnung'
+  const docTitle = isRapport ? 'Arbeitsrapport' : 'Rechnung'
   const contactLines = buildContactLines(contact, doc.contact_name)
 
   const companyAddress = [company.address, [company.zip, company.city].filter(Boolean).join(' ')]
