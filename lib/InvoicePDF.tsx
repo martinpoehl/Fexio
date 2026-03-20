@@ -525,6 +525,15 @@ export function InvoicePDF({
 
           {/* ── Notes ── */}
           {doc.notes && <Text style={styles.notes}>{doc.notes}</Text>}
+
+          {/* ── Closing text ── */}
+          <View style={{ marginTop: 20, paddingTop: 14, borderTopWidth: 1, borderTopColor: MID_GRAY }}>
+            <Text style={{ fontSize: 8.5, color: TEXT_MID, marginBottom: 10 }}>
+              Zahlungsbedingungen: Zahlung innerhalb von 30 Tagen ab Rechnungseingang.
+            </Text>
+            <Text style={{ fontSize: 8.5, color: TEXT_DARK }}>Mit freundlichen Grüssen</Text>
+            <Text style={{ fontSize: 8.5, color: TEXT_DARK, marginTop: 4, fontFamily: 'Helvetica-Bold' }}>Stefan Pöhl</Text>
+          </View>
         </View>
 
         {/* ── Page number ── */}
