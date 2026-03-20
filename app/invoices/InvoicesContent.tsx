@@ -71,6 +71,7 @@ export default function InvoicesContent() {
     date: new Date().toISOString().split('T')[0],
     due_date: '',
     service_period: '',
+    reference: '',
     status: 'entwurf',
     notes: '',
   })
