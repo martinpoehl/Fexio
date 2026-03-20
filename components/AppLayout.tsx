@@ -54,7 +54,7 @@ function NavIcon({ name, className = "w-[18px] h-[18px]" }: { name: string; clas
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null)
   const [company, setCompany] = useState<any>(null)
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Verkauf: true, Buchhaltung: true })
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
@@ -64,7 +64,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setSidebarOpen(false)
-    setOpenGroups({})
   }, [pathname])
 
   useEffect(() => {
