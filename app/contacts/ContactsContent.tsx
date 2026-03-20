@@ -83,8 +83,7 @@ export default function ContactsContent() {
       })
     } else {
       setEditingContact(null)
-      const yy = String(new Date().getFullYear()).slice(-2)
-      const prefix = `${yy}-`
+      const prefix = 'K-'
       const existing = contacts
         .map(c => c.customer_number || '')
         .filter(n => n.startsWith(prefix))
