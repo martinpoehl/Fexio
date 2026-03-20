@@ -22,8 +22,8 @@ const navItems = [
       { href: '/invoices', label: 'Rechnungen' },
     ]
   },
-  { href: '/products', label: 'Spesen', icon: 'package' },
   { href: '/expenses', label: 'Materialausgaben', icon: 'receipt' },
+  { href: '/products', label: 'Spesen', icon: 'package' },
   { href: '/time', label: 'Zeiterfassung', icon: 'clock' },
   {
     label: 'Buchhaltung', icon: 'calculator', children: [
