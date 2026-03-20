@@ -163,7 +163,7 @@ export default function InvoicesContent() {
         .map((n: string) => parseInt(n.replace('RE-', ''), 10))
         .filter((n: number) => !isNaN(n))
       const maxNum = nums.length > 0 ? Math.max(...nums) : 0
-      return `RE-${String(maxNum + 1).padStart(3, '0')}`
+      return `RE-${String(maxNum + 1).padStart(4, '0')}`
     }
     const year = new Date().getFullYear()
     const seq = String(documents.length + 1).padStart(3, '0')
