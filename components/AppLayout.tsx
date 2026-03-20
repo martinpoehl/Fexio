@@ -28,11 +28,7 @@ const navItems = [
       { href: '/expenses', label: 'Ausgaben' },
     ]
   },
-  {
-    label: 'Projekte & Zeit', icon: 'clock', children: [
-      { href: '/time', label: 'Zeiterfassung' },
-    ]
-  },
+  { href: '/time', label: 'Zeiterfassung', icon: 'clock' },
   { href: '/products', label: 'Produkte', icon: 'package' },
   {
     label: 'Buchhaltung', icon: 'calculator', children: [
