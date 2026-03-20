@@ -338,22 +338,15 @@ export default function ProductsContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Artikel-Nr</label>
-                  <input
-                    value={formData.article_nr}
-                    onChange={e => setFormData({...formData, article_nr: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                    placeholder="z.B. 1001"
-                  />
-                </div>
-                <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Einheit</label>
-                  <input
+                  <select
                     value={formData.unit}
                     onChange={e => setFormData({...formData, unit: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                    placeholder="Stk. / Std. / km"
-                  />
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 bg-white"
+                  >
+                    <option value="Stk.">Stk.</option>
+                    <option value="km">km</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Preis (Netto) *</label>
