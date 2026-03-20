@@ -1255,47 +1255,51 @@ export default function InvoicesContent() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Datum *</label>
-                  <input
-                    required
-                    type="date"
-                    value={formData.date}
-                    onChange={e => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full max-w-[160px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Fällig am</label>
-                  <input
-                    type="date"
-                    value={formData.due_date}
-                    onChange={e => setFormData({ ...formData, due_date: e.target.value })}
-                    className="w-full max-w-[160px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Leistungszeitraum</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      value={spFrom}
-                      onChange={e => {
-                        setSpFrom(e.target.value)
-                        setFormData({ ...formData, service_period: fmtServicePeriod(e.target.value, spTo) })
-                      }}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                    />
-                    <span className="text-gray-400 text-sm shrink-0">–</span>
-                    <input
-                      type="date"
-                      value={spTo}
-                      onChange={e => {
-                        setSpTo(e.target.value)
-                        setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, e.target.value) })
-                      }}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                    />
+                <div className="col-span-2 sm:col-span-3">
+                  <div className="flex items-end gap-3 flex-wrap">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Datum *</label>
+                      <input
+                        required
+                        type="date"
+                        value={formData.date}
+                        onChange={e => setFormData({ ...formData, date: e.target.value })}
+                        className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Fällig am</label>
+                      <input
+                        type="date"
+                        value={formData.due_date}
+                        onChange={e => setFormData({ ...formData, due_date: e.target.value })}
+                        className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Leistungszeitraum</label>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="date"
+                          value={spFrom}
+                          onChange={e => {
+                            setSpFrom(e.target.value)
+                            setFormData({ ...formData, service_period: fmtServicePeriod(e.target.value, spTo) })
+                          }}
+                          className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                        />
+                        <span className="text-gray-400 text-sm shrink-0">–</span>
+                        <input
+                          type="date"
+                          value={spTo}
+                          onChange={e => {
+                            setSpTo(e.target.value)
+                            setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, e.target.value) })
+                          }}
+                          className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div>
