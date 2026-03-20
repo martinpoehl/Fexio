@@ -1286,7 +1286,7 @@ export default function InvoicesContent() {
                             setSpFrom(e.target.value)
                             setFormData({ ...formData, service_period: fmtServicePeriod(e.target.value, spTo) })
                           }}
-                          className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                          className="w-[130px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                         />
                         <span className="text-gray-400 text-sm shrink-0">–</span>
                         <input
@@ -1296,7 +1296,7 @@ export default function InvoicesContent() {
                             setSpTo(e.target.value)
                             setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, e.target.value) })
                           }}
-                          className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                          className="w-[130px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                         />
                       </div>
                     </div>
