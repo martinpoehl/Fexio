@@ -1294,64 +1294,88 @@ export default function InvoicesContent() {
                   <div className="flex items-end gap-3 flex-wrap">
                     <div>
                       <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Datum *</label>
-                      <input
-                        required
-                        type="text"
-                        placeholder="TT.MM.JJJJ"
-                        value={dateDisplay}
-                        onChange={e => {
-                          setDateDisplay(e.target.value)
-                          const iso = displayToIso(e.target.value)
-                          if (iso) setFormData({ ...formData, date: iso })
-                        }}
-                        className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                      />
+                      <div className="relative flex items-center">
+                        <input
+                          required
+                          type="text"
+                          placeholder="TT.MM.JJJJ"
+                          value={dateDisplay}
+                          onChange={e => {
+                            setDateDisplay(e.target.value)
+                            const iso = displayToIso(e.target.value)
+                            if (iso) setFormData({ ...formData, date: iso })
+                          }}
+                          className="w-[110px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                        />
+                        <label className="absolute right-2 cursor-pointer text-gray-400 hover:text-gray-600">
+                          <Calendar size={13} />
+                          <input type="date" value={formData.date} onChange={e => { setDateDisplay(fD(e.target.value)); setFormData({ ...formData, date: e.target.value }) }} className="sr-only" />
+                        </label>
+                      </div>
                     </div>
                     {typeFilter === 'invoice' && (
                       <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Fällig am</label>
-                        <input
-                          type="text"
-                          placeholder="TT.MM.JJJJ"
-                          value={dueDateDisplay}
-                          onChange={e => {
-                            setDueDateDisplay(e.target.value)
-                            const iso = displayToIso(e.target.value)
-                            if (iso) setFormData({ ...formData, due_date: iso })
-                          }}
-                          className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            placeholder="TT.MM.JJJJ"
+                            value={dueDateDisplay}
+                            onChange={e => {
+                              setDueDateDisplay(e.target.value)
+                              const iso = displayToIso(e.target.value)
+                              if (iso) setFormData({ ...formData, due_date: iso })
+                            }}
+                            className="w-[110px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                          />
+                          <label className="absolute right-2 cursor-pointer text-gray-400 hover:text-gray-600">
+                            <Calendar size={13} />
+                            <input type="date" value={formData.due_date} onChange={e => { setDueDateDisplay(fD(e.target.value)); setFormData({ ...formData, due_date: e.target.value }) }} className="sr-only" />
+                          </label>
+                        </div>
                       </div>
                     )}
                     {typeFilter === 'invoice' && (
                       <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Leistungszeitraum</label>
                         <div className="flex items-center gap-1.5">
-                          <input
-                            type="text"
-                            placeholder="TT.MM.JJJJ"
-                            value={spFromDisplay}
-                            onChange={e => {
-                              setSpFromDisplay(e.target.value)
-                              const iso = displayToIso(e.target.value)
-                              setSpFrom(iso)
-                              setFormData({ ...formData, service_period: fmtServicePeriod(iso, spTo) })
-                            }}
-                            className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                          />
+                          <div className="relative flex items-center">
+                            <input
+                              type="text"
+                              placeholder="TT.MM.JJJJ"
+                              value={spFromDisplay}
+                              onChange={e => {
+                                setSpFromDisplay(e.target.value)
+                                const iso = displayToIso(e.target.value)
+                                setSpFrom(iso)
+                                setFormData({ ...formData, service_period: fmtServicePeriod(iso, spTo) })
+                              }}
+                              className="w-[110px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                            />
+                            <label className="absolute right-2 cursor-pointer text-gray-400 hover:text-gray-600">
+                              <Calendar size={13} />
+                              <input type="date" value={spFrom} onChange={e => { const iso = e.target.value; setSpFrom(iso); setSpFromDisplay(fD(iso)); setFormData({ ...formData, service_period: fmtServicePeriod(iso, spTo) }) }} className="sr-only" />
+                            </label>
+                          </div>
                           <span className="text-gray-400 text-sm shrink-0">–</span>
-                          <input
-                            type="text"
-                            placeholder="TT.MM.JJJJ"
-                            value={spToDisplay}
-                            onChange={e => {
-                              setSpToDisplay(e.target.value)
-                              const iso = displayToIso(e.target.value)
-                              setSpTo(iso)
-                              setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, iso) })
-                            }}
-                            className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                          />
+                          <div className="relative flex items-center">
+                            <input
+                              type="text"
+                              placeholder="TT.MM.JJJJ"
+                              value={spToDisplay}
+                              onChange={e => {
+                                setSpToDisplay(e.target.value)
+                                const iso = displayToIso(e.target.value)
+                                setSpTo(iso)
+                                setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, iso) })
+                              }}
+                              className="w-[110px] pl-2 pr-7 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                            />
+                            <label className="absolute right-2 cursor-pointer text-gray-400 hover:text-gray-600">
+                              <Calendar size={13} />
+                              <input type="date" value={spTo} onChange={e => { const iso = e.target.value; setSpTo(iso); setSpToDisplay(fD(iso)); setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, iso) }) }} className="sr-only" />
+                            </label>
+                          </div>
                         </div>
                       </div>
                     )}
