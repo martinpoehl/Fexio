@@ -183,8 +183,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 overflow-y-auto py-2 px-2">
           {navItems.map((item, i) => {
             if ('children' in item) {
-              const isOpen = openGroups[item.label] ?? hasActive
               const hasActive = item.children?.some(c => isActive(c.href))
+              const isOpen = openGroups[item.label] ?? hasActive
               return (
                 <div key={item.label}>
                   {i > 0 && !('children' in navItems[i - 1]) && (
