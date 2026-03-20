@@ -1154,7 +1154,7 @@ export default function InvoicesContent() {
       {/* ─── Modal ─────────────────────────────────────────────────────────────── */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-black/50 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl my-6 flex flex-col">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl my-6 flex flex-col">
             {/* Modal header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 rounded-t-xl">
               <h2 className="font-bold text-gray-900">
