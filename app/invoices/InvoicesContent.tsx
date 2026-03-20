@@ -1307,20 +1307,22 @@ export default function InvoicesContent() {
                         className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Fällig am</label>
-                      <input
-                        type="text"
-                        placeholder="TT.MM.JJJJ"
-                        value={dueDateDisplay}
-                        onChange={e => {
-                          setDueDateDisplay(e.target.value)
-                          const iso = displayToIso(e.target.value)
-                          if (iso) setFormData({ ...formData, due_date: iso })
-                        }}
-                        className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                      />
-                    </div>
+                    {typeFilter === 'invoice' && (
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Fällig am</label>
+                        <input
+                          type="text"
+                          placeholder="TT.MM.JJJJ"
+                          value={dueDateDisplay}
+                          onChange={e => {
+                            setDueDateDisplay(e.target.value)
+                            const iso = displayToIso(e.target.value)
+                            if (iso) setFormData({ ...formData, due_date: iso })
+                          }}
+                          className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                        />
+                      </div>
+                    )}
                     {typeFilter === 'invoice' && (
                       <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Leistungszeitraum</label>
