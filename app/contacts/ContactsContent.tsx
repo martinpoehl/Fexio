@@ -223,7 +223,6 @@ export default function ContactsContent() {
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Typ</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Name</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Firma</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Ort</th>
@@ -235,26 +234,15 @@ export default function ContactsContent() {
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
+                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Laden...</td>
               </tr>
             ) : filteredContacts.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Kunden gefunden</td>
+                <td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Kunden gefunden</td>
               </tr>
             ) : (
               filteredContacts.map(contact => (
                 <tr key={contact.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    {contact.contact_type === 'person' ? (
-                      <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-gray-100 text-gray-600">
-                        Person
-                      </span>
-                    ) : (
-                      <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-[#1e3a5f] text-white">
-                        Firma
-                      </span>
-                    )}
-                  </td>
                   <td className="px-6 py-4">
                     <div className="text-[13px] font-semibold text-gray-900">
                       {contact.first_name || contact.last_name ? `${contact.first_name || ''} ${contact.last_name || ''}`.trim() : contact.name}

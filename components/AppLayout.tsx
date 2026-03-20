@@ -30,7 +30,6 @@ const navItems = [
   },
   {
     label: 'Projekte & Zeit', icon: 'clock', children: [
-      { href: '/projects', label: 'Projekte' },
       { href: '/time', label: 'Zeiterfassung' },
     ]
   },
