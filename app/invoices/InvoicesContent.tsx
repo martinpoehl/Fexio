@@ -1321,36 +1321,38 @@ export default function InvoicesContent() {
                         className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Leistungszeitraum</label>
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="text"
-                          placeholder="TT.MM.JJJJ"
-                          value={spFromDisplay}
-                          onChange={e => {
-                            setSpFromDisplay(e.target.value)
-                            const iso = displayToIso(e.target.value)
-                            setSpFrom(iso)
-                            setFormData({ ...formData, service_period: fmtServicePeriod(iso, spTo) })
-                          }}
-                          className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                        />
-                        <span className="text-gray-400 text-sm shrink-0">–</span>
-                        <input
-                          type="text"
-                          placeholder="TT.MM.JJJJ"
-                          value={spToDisplay}
-                          onChange={e => {
-                            setSpToDisplay(e.target.value)
-                            const iso = displayToIso(e.target.value)
-                            setSpTo(iso)
-                            setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, iso) })
-                          }}
-                          className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                        />
+                    {typeFilter === 'invoice' && (
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Leistungszeitraum</label>
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            placeholder="TT.MM.JJJJ"
+                            value={spFromDisplay}
+                            onChange={e => {
+                              setSpFromDisplay(e.target.value)
+                              const iso = displayToIso(e.target.value)
+                              setSpFrom(iso)
+                              setFormData({ ...formData, service_period: fmtServicePeriod(iso, spTo) })
+                            }}
+                            className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                          />
+                          <span className="text-gray-400 text-sm shrink-0">–</span>
+                          <input
+                            type="text"
+                            placeholder="TT.MM.JJJJ"
+                            value={spToDisplay}
+                            onChange={e => {
+                              setSpToDisplay(e.target.value)
+                              const iso = displayToIso(e.target.value)
+                              setSpTo(iso)
+                              setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, iso) })
+                            }}
+                            className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
                 {typeFilter === 'invoice' && (
