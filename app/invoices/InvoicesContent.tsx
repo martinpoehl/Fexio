@@ -1154,7 +1154,7 @@ export default function InvoicesContent() {
       {/* ─── Modal ─────────────────────────────────────────────────────────────── */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-black/50 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl my-6 flex flex-col">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl my-6 flex flex-col">
             {/* Modal header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 rounded-t-xl">
               <h2 className="font-bold text-gray-900">
@@ -1310,7 +1310,7 @@ export default function InvoicesContent() {
                 </div>
 
                 {/* Column headers */}
-                <div className="hidden md:grid grid-cols-[2fr_1fr_80px_1fr_80px_100px_90px_32px] gap-2 mb-1 px-1">
+                <div className="hidden md:grid grid-cols-[2fr_60px_65px_80px_60px_65px_75px_28px] gap-2 mb-1 px-1">
                   {['Beschreibung', 'Menge', 'Einheit', 'Preis', 'Rabatt %', 'MwSt%', 'Total', ''].map(h => (
                     <span key={h} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
                       {h}
@@ -1322,7 +1322,7 @@ export default function InvoicesContent() {
                   {lines.map((line, idx) => (
                     <div
                       key={idx}
-                      className="grid grid-cols-1 md:grid-cols-[2fr_1fr_80px_1fr_80px_100px_90px_32px] gap-2 items-center bg-gray-50 rounded-lg p-2 border border-gray-100"
+                      className="grid grid-cols-1 md:grid-cols-[2fr_60px_65px_80px_60px_65px_75px_28px] gap-2 items-center bg-gray-50 rounded-lg p-2 border border-gray-100"
                     >
                       {/* Description */}
                       <input
@@ -1334,18 +1334,14 @@ export default function InvoicesContent() {
                       />
 
                       {/* Quantity */}
-                      <div className="flex items-center border border-gray-200 rounded-md overflow-hidden">
-                        <button type="button" onClick={() => updateLine(idx, { quantity: Math.max(0, line.quantity - 1) })} className="px-2 py-1.5 text-gray-500 hover:bg-gray-100 font-bold leading-none transition-colors">−</button>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={line.quantity}
-                          onChange={e => updateLine(idx, { quantity: Math.max(0, Number(e.target.value)) })}
-                          className="w-full text-center py-1.5 text-sm focus:outline-none bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
-                        <button type="button" onClick={() => updateLine(idx, { quantity: line.quantity + 1 })} className="px-2 py-1.5 text-gray-500 hover:bg-gray-100 font-bold leading-none transition-colors">+</button>
-                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={line.quantity}
+                        onChange={e => updateLine(idx, { quantity: Math.max(0, Number(e.target.value)) })}
+                        className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-1 focus:ring-green-500/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
 
                       {/* Unit */}
                       <select
