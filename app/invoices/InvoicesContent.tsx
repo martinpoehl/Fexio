@@ -439,28 +439,31 @@ export default function InvoicesContent() {
 
       let documentId: string
 
-      if (editingDoc) {
-        const { error } = await supabase
-          .from('documents')
-          .update(docPayload)
-          .eq('id', editingDoc.id)
-        if (error) throw error
-        documentId = editingDoc.id
+      const saveDoc = async (payload: any) => {
+        if (editingDoc) {
+          const { error } = await supabase.from('documents').update(payload).eq('id', editingDoc.id)
+          return { error, id: editingDoc.id as string }
+        } else {
+          const { data: inserted, error } = await supabase.from('documents').insert([payload]).select('id').single()
+          return { error, id: inserted?.id as string }
+        }
+      }
 
+      let { error: saveError, id: savedId } = await saveDoc(docPayload)
+      if (saveError?.message?.includes('service_period')) {
+        const { service_period: _sp, ...withoutSP } = docPayload;
+        ({ error: saveError, id: savedId } = await saveDoc(withoutSP))
+      }
+      if (saveError) throw saveError
+      documentId = savedId
+
+      if (editingDoc) {
         // Delete existing lines then re-insert
         const { error: delErr } = await supabase
           .from('document_lines')
           .delete()
           .eq('document_id', documentId)
         if (delErr) throw delErr
-      } else {
-        const { data: inserted, error } = await supabase
-          .from('documents')
-          .insert([docPayload])
-          .select('id')
-          .single()
-        if (error) throw error
-        documentId = inserted.id
       }
 
       // Insert lines
