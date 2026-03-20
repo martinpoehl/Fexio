@@ -949,7 +949,7 @@ export default function InvoicesContent() {
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 rounded-t-xl">
               <div className="flex items-center gap-2">
                 <Package size={18} className="text-green-600" />
-                <h2 className="font-bold text-gray-900">Produkt importieren</h2>
+                <h2 className="font-bold text-gray-900">Spesen importieren</h2>
               </div>
               <button onClick={() => setShowProductModal(false)} className="text-gray-400 hover:text-gray-600">
                 <X size={20} />
@@ -957,7 +957,7 @@ export default function InvoicesContent() {
             </div>
             <div className="overflow-y-auto flex-1 p-4">
               {products.length === 0 ? (
-                <p className="text-center text-gray-400 text-sm py-10">Keine Produkte vorhanden</p>
+                <p className="text-center text-gray-400 text-sm py-10">Keine Spesen vorhanden</p>
               ) : (
                 <div className="space-y-1">
                   {products.map(product => {
@@ -1028,7 +1028,7 @@ export default function InvoicesContent() {
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 rounded-t-xl">
               <div className="flex items-center gap-2">
                 <Receipt size={18} className="text-orange-500" />
-                <h2 className="font-bold text-gray-900">Ausgaben importieren</h2>
+                <h2 className="font-bold text-gray-900">Material importieren</h2>
               </div>
               <button onClick={() => setShowExpenseModal(false)} className="text-gray-400 hover:text-gray-600">
                 <X size={20} />
@@ -1036,7 +1036,7 @@ export default function InvoicesContent() {
             </div>
             <div className="overflow-y-auto flex-1 p-4">
               {expenses.length === 0 ? (
-                <p className="text-center text-gray-400 text-sm py-10">Keine offenen Ausgaben vorhanden</p>
+                <p className="text-center text-gray-400 text-sm py-10">Kein Material vorhanden</p>
               ) : (
                 <div className="space-y-1">
                   {expenses.map(expense => {
@@ -1430,7 +1430,7 @@ export default function InvoicesContent() {
                           onClick={handleOpenExpenseModal}
                           className="flex items-center gap-1.5 text-xs font-semibold text-orange-600 hover:text-orange-800 transition-colors"
                         >
-                          <Receipt size={14} /> Ausgaben importieren
+                          <Receipt size={14} /> Material importieren
                         </button>
                       </>
                     )}
@@ -1439,7 +1439,7 @@ export default function InvoicesContent() {
                       onClick={handleOpenProductModal}
                       className="flex items-center gap-1.5 text-xs font-semibold text-[#00875A] hover:text-[#006B47] transition-colors"
                     >
-                      <Package size={14} /> Produkt importieren
+                      <Package size={14} /> Spesen importieren
                     </button>
                     <button
                       type="button"
