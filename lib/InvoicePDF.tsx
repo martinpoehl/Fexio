@@ -163,18 +163,19 @@ const styles = StyleSheet.create({
   },
   metaRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     width: '100%',
     marginBottom: 3,
   },
   metaLabel: {
     fontSize: 8,
     color: TEXT_MID,
+    width: 90,
   },
   metaValue: {
     fontSize: 8,
     fontFamily: 'Helvetica-Bold',
     color: TEXT_DARK,
+    flex: 1,
   },
 
   // ── Divider ──
