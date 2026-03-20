@@ -50,6 +50,7 @@ interface InvoicePDFProps {
     city?: string
     email?: string
     customer_number?: string
+    uid_nr?: string
   } | null
   logoBase64?: string | null
 }
@@ -423,6 +424,12 @@ export function InvoicePDF({
                 <View style={styles.metaRow}>
                   <Text style={styles.metaLabel}>Kundennr.:</Text>
                   <Text style={styles.metaValue}>{contact.customer_number}</Text>
+                </View>
+              )}
+              {contact?.uid_nr && (
+                <View style={styles.metaRow}>
+                  <Text style={styles.metaLabel}>UID-Nr.:</Text>
+                  <Text style={styles.metaValue}>{contact.uid_nr}</Text>
                 </View>
               )}
               <View style={styles.metaRow}>
