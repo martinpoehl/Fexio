@@ -27,6 +27,7 @@ interface FormData {
   contact_name: string
   date: string
   due_date: string
+  service_period: string
   status: string
   notes: string
 }
@@ -66,6 +67,7 @@ export default function InvoicesContent() {
     contact_name: '',
     date: new Date().toISOString().split('T')[0],
     due_date: '',
+    service_period: '',
     status: 'entwurf',
     notes: '',
   })
@@ -311,6 +313,7 @@ export default function InvoicesContent() {
         contact_name: doc.contact_name || doc.contacts?.name || '',
         date: doc.date || new Date().toISOString().split('T')[0],
         due_date: doc.due_date || '',
+        service_period: doc.service_period || '',
         status: doc.status || 'entwurf',
         notes: doc.notes || '',
       })
@@ -350,6 +353,7 @@ export default function InvoicesContent() {
         contact_name: '',
         date: new Date().toISOString().split('T')[0],
         due_date: dueDate.toISOString().split('T')[0],
+        service_period: '',
         status: 'entwurf',
         notes: '',
       })
@@ -1241,6 +1245,16 @@ export default function InvoicesContent() {
                     value={formData.due_date}
                     onChange={e => setFormData({ ...formData, due_date: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Leistungszeitraum</label>
+                  <input
+                    type="text"
+                    value={formData.service_period}
+                    onChange={e => setFormData({ ...formData, service_period: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                    placeholder="z.B. März 2026"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-3">

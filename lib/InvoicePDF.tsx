@@ -19,6 +19,7 @@ interface InvoicePDFProps {
     number: string
     date: string
     due_date?: string
+    service_period?: string
     status: string
     notes?: string
     contact_name?: string
@@ -407,25 +408,35 @@ export function InvoicePDF({
             {/* Meta */}
             <View style={styles.metaBlock}>
               <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>Nummer:</Text>
+                <Text style={styles.metaLabel}>Rechnungsnr.:</Text>
                 <Text style={styles.metaValue}>{doc.number}</Text>
               </View>
-              <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>Datum:</Text>
-                <Text style={styles.metaValue}>{fDate(doc.date)}</Text>
-              </View>
-              {doc.due_date && (
-                <View style={styles.metaRow}>
-                  <Text style={styles.metaLabel}>Fällig:</Text>
-                  <Text style={styles.metaValue}>{fDate(doc.due_date)}</Text>
-                </View>
-              )}
               {contact?.customer_number && (
                 <View style={styles.metaRow}>
                   <Text style={styles.metaLabel}>Kundennr.:</Text>
                   <Text style={styles.metaValue}>{contact.customer_number}</Text>
                 </View>
               )}
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Datum:</Text>
+                <Text style={styles.metaValue}>{fDate(doc.date)}</Text>
+              </View>
+              {doc.service_period && (
+                <View style={styles.metaRow}>
+                  <Text style={styles.metaLabel}>Leistungszeitraum:</Text>
+                  <Text style={styles.metaValue}>{doc.service_period}</Text>
+                </View>
+              )}
+              {doc.due_date && (
+                <View style={styles.metaRow}>
+                  <Text style={styles.metaLabel}>Fällig bis:</Text>
+                  <Text style={styles.metaValue}>{fDate(doc.due_date)}</Text>
+                </View>
+              )}
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Ihr Ansprechpartner:</Text>
+                <Text style={styles.metaValue}>Stefan Pöhl</Text>
+              </View>
             </View>
           </View>
 
