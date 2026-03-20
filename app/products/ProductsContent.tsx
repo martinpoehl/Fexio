@@ -152,15 +152,15 @@ export default function ProductsContent() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[22px] font-bold text-gray-900">Produkte</h1>
-          <p className="text-gray-400 text-sm mt-1">Verwalte deine Artikel und Dienstleistungen</p>
+          <h1 className="text-[22px] font-bold text-gray-900">Spesen</h1>
+          <p className="text-gray-400 text-sm mt-1">Verwalte deine Spesen</p>
         </div>
         <button
           onClick={() => handleOpenModal()}
           className="flex items-center gap-2 bg-[#00875A] hover:bg-[#006B47] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
         >
           <Plus size={18} />
-          Produkt hinzufügen
+          Spesen hinzufügen
         </button>
       </div>
 
@@ -169,7 +169,7 @@ export default function ProductsContent() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Suchen nach Name oder Artikel-Nr..."
+            placeholder="Suchen nach Name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
@@ -214,7 +214,7 @@ export default function ProductsContent() {
               </tr>
             ) : filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Produkte gefunden</td>
+                <td colSpan={8} className="px-6 py-10 text-center text-gray-400 text-sm">Keine Spesen gefunden</td>
               </tr>
             ) : (
               filteredProducts.map(product => (
@@ -291,7 +291,7 @@ export default function ProductsContent() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <h2 className="font-bold text-gray-900">
-                {editingProduct ? 'Produkt bearbeiten' : 'Neues Produkt'}
+                {editingProduct ? 'Spesen bearbeiten' : 'Neue Spesen'}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
                 <X size={20} />
@@ -334,7 +334,7 @@ export default function ProductsContent() {
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                    placeholder="Produkt oder Dienstleistung"
+                    placeholder="Name der Spesen"
                   />
                 </div>
                 <div>
@@ -380,7 +380,7 @@ export default function ProductsContent() {
                     onChange={e => setFormData({...formData, description: e.target.value})}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                    placeholder="Details zum Produkt..."
+                    placeholder="Details zu den Spesen..."
                   />
                 </div>
                 {/* Active toggle */}
@@ -402,7 +402,7 @@ export default function ProductsContent() {
                       Aktiv
                     </span>
                     <span className="text-xs text-gray-400">
-                      {formData.active ? 'Produkt ist aktiv und in Rechnungen verfügbar' : 'Produkt ist deaktiviert'}
+                      {formData.active ? 'Spesen sind aktiv und verfügbar' : 'Spesen sind deaktiviert'}
                     </span>
                   </label>
                 </div>
