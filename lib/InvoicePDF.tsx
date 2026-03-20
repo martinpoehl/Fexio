@@ -89,14 +89,14 @@ const styles = StyleSheet.create({
     backgroundColor: NAVY,
   },
   logoWrapper: {
-    width: 99,
-    height: 99,
+    width: 57,
+    height: 57,
     marginRight: 16,
     justifyContent: 'center',
   },
   logoFull: {
-    width: 99,
-    height: 99,
+    width: 57,
+    height: 57,
     objectFit: 'contain',
   },
   logo: {
