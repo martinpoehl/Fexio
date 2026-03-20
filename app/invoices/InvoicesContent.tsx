@@ -699,7 +699,7 @@ export default function InvoicesContent() {
         <table className="w-full text-left border-collapse min-w-[900px]">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Nummer</th>
+              <th className="px-3 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-24">Nummer</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Titel</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Kontakt</th>
               <th className="px-6 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Datum</th>
@@ -721,9 +721,9 @@ export default function InvoicesContent() {
             ) : (
               filteredDocs.map(doc => (
                 <tr key={doc.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="text-[13px] font-bold text-gray-900 flex items-center gap-2">
-                      <FileText size={14} className="text-gray-400" /> {doc.number}
+                  <td className="px-3 py-4">
+                    <div className="text-[13px] font-bold text-gray-900 flex items-center gap-1.5 whitespace-nowrap">
+                      <FileText size={13} className="text-gray-400 shrink-0" /> {doc.number}
                     </div>
                   </td>
                   <td className="px-6 py-4">
