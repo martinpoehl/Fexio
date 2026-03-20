@@ -586,27 +586,6 @@ export default function TimeContent() {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Projekt</label>
-                  <select
-                    value={formData.project_id}
-                    onChange={e => {
-                      const projId = e.target.value
-                      const proj = projects.find(p => p.id === projId)
-                      setFormData({
-                        ...formData,
-                        project_id: projId,
-                        hourly_rate: proj ? Number(proj.hourly_rate) : defaultRate
-                      })
-                    }}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                  >
-                    <option value="">– Keines / Intern –</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Stundensatz (CHF)</label>
