@@ -102,7 +102,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const isActive = (href: string) => {
     const [hrefPath, hrefQuery] = href.split('?')
-    if (pathname !== hrefPath && !pathname?.startsWith(hrefPath + '/')) return false
+    if (pathname !== hrefPath) return false
     const current = new URLSearchParams(currentSearch)
     if (!hrefQuery) {
       if (hrefPath === '/invoices') return !current.get('type')
