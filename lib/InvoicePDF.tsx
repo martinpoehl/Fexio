@@ -425,7 +425,7 @@ export function InvoicePDF({
                 <Text style={styles.metaLabel}>{docTitle}datum:</Text>
                 <Text style={styles.metaValue}>{fDate(doc.date)}</Text>
               </View>
-              {doc.due_date && (
+              {!isRapport && doc.due_date && (
                 <View style={styles.metaRow}>
                   <Text style={styles.metaLabel}>Fällig bis:</Text>
                   <Text style={styles.metaValue}>{fDate(doc.due_date)}</Text>
