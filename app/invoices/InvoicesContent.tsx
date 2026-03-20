@@ -1492,7 +1492,7 @@ export default function InvoicesContent() {
                         className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30 bg-white"
                       >
                         <option value="Stk.">Stk.</option>
-                        <option value="Std.">Std.</option>
+                        <option value="h">h</option>
                         <option value="km">km</option>
                       </select>
 
