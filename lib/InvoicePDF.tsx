@@ -353,6 +353,8 @@ export function InvoicePDF({
   contact,
   logoBase64,
 }: InvoicePDFProps) {
+  const isRapport = doc.type === 'order'
+  const docTitle = isRapport ? 'Rapport' : 'Rechnung'
   const contactLines = buildContactLines(contact, doc.contact_name)
 
   const companyAddress = [company.address, [company.zip, company.city].filter(Boolean).join(' ')]
@@ -407,11 +409,11 @@ export function InvoicePDF({
             {/* Meta */}
             <View style={styles.metaBlock}>
               <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>Rechnungsnr.:</Text>
+                <Text style={styles.metaLabel}>{docTitle}nr.:</Text>
                 <Text style={styles.metaValue}>{doc.number}</Text>
               </View>
               <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>Rechnungsdatum:</Text>
+                <Text style={styles.metaLabel}>{docTitle}datum:</Text>
                 <Text style={styles.metaValue}>{fDate(doc.date)}</Text>
               </View>
               {doc.due_date && (
@@ -449,11 +451,13 @@ export function InvoicePDF({
 
           {/* ── Intro text ── */}
           <View style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: NAVY, marginBottom: 14 }}>Rechnung</Text>
+            <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: NAVY, marginBottom: 14 }}>{docTitle}</Text>
             <Text style={{ fontSize: 9, color: TEXT_DARK, marginBottom: 14 }}>Sehr geehrte Damen und Herren,</Text>
             <Text style={{ fontSize: 9, color: TEXT_DARK, marginBottom: 6 }}>Vielen Dank für Ihren Auftrag.</Text>
             <Text style={{ fontSize: 9, color: TEXT_DARK }}>
-              {`Wir stellen Ihnen folgende Leistungen${doc.reference ? ` gemäss Rapport Nr. ${doc.reference}` : ''} in Rechnung:`}
+              {isRapport
+                ? `Wir bestätigen folgende erbrachten Leistungen:`
+                : `Wir stellen Ihnen folgende Leistungen${doc.reference ? ` gemäss Rapport Nr. ${doc.reference}` : ''} in Rechnung:`}
             </Text>
           </View>
 
