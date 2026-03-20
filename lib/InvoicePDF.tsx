@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   },
   companyInfo: {
     flex: 1,
-    alignItems: 'flex-start',
+    alignItems: 'flex-end',
   },
   companyName: {
     fontSize: 16,
