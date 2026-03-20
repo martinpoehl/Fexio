@@ -158,10 +158,12 @@ export default function InvoicesContent() {
     }
     if (typeFilter === 'invoice') {
       const nums = documents
-        .map((d: any) => parseInt(d.number, 10))
+        .map((d: any) => d.number)
+        .filter((n: string) => n)
+        .map((n: string) => parseInt(n.replace('RE-', ''), 10))
         .filter((n: number) => !isNaN(n))
       const maxNum = nums.length > 0 ? Math.max(...nums) : 0
-      return String(maxNum + 1).padStart(3, '0')
+      return `RE-${String(maxNum + 1).padStart(3, '0')}`
     }
     const year = new Date().getFullYear()
     const seq = String(documents.length + 1).padStart(3, '0')
