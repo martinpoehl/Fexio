@@ -62,6 +62,10 @@ export default function InvoicesContent() {
   const [editingDoc, setEditingDoc] = useState<any>(null)
   const [spFrom, setSpFrom] = useState('')
   const [spTo, setSpTo] = useState('')
+  const [dateDisplay, setDateDisplay] = useState('')
+  const [dueDateDisplay, setDueDateDisplay] = useState('')
+  const [spFromDisplay, setSpFromDisplay] = useState('')
+  const [spToDisplay, setSpToDisplay] = useState('')
 
   const [formData, setFormData] = useState<FormData>({
     number: '',
@@ -223,6 +227,13 @@ export default function InvoicesContent() {
     return `${day}.${m}.${y}`
   }
 
+  const displayToIso = (d: string) => {
+    if (!d) return ''
+    const parts = d.split('.')
+    if (parts.length !== 3 || parts[2].length !== 4) return ''
+    return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`
+  }
+
   // ─── Status filter tabs ──────────────────────────────────────────────────────
 
   const invoiceStatusTabs = ['alle', 'entwurf', 'versendet', 'bezahlt', 'storniert']
@@ -342,6 +353,10 @@ export default function InvoicesContent() {
       const [parsedFrom, parsedTo] = parseServicePeriod(doc.service_period || '')
       setSpFrom(parsedFrom)
       setSpTo(parsedTo)
+      setDateDisplay(fD(doc.date || new Date().toISOString().split('T')[0]))
+      setDueDateDisplay(fD(doc.due_date || ''))
+      setSpFromDisplay(fD(parsedFrom))
+      setSpToDisplay(fD(parsedTo))
       setFormData({
         number: doc.number || '',
         title: doc.title || '',
@@ -395,8 +410,12 @@ export default function InvoicesContent() {
         status: 'entwurf',
         notes: '',
       })
+      setDateDisplay(fD(new Date().toISOString().split('T')[0]))
+      setDueDateDisplay(fD(dueDate.toISOString().split('T')[0]))
       setSpFrom('')
       setSpTo('')
+      setSpFromDisplay('')
+      setSpToDisplay('')
       setLines([])
     }
     setShowModal(true)
@@ -1277,42 +1296,58 @@ export default function InvoicesContent() {
                       <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Datum *</label>
                       <input
                         required
-                        type="date"
-                        value={formData.date}
-                        onChange={e => setFormData({ ...formData, date: e.target.value })}
-                        className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                        type="text"
+                        placeholder="TT.MM.JJJJ"
+                        value={dateDisplay}
+                        onChange={e => {
+                          setDateDisplay(e.target.value)
+                          const iso = displayToIso(e.target.value)
+                          if (iso) setFormData({ ...formData, date: iso })
+                        }}
+                        className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Fällig am</label>
                       <input
-                        type="date"
-                        value={formData.due_date}
-                        onChange={e => setFormData({ ...formData, due_date: e.target.value })}
-                        className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                        type="text"
+                        placeholder="TT.MM.JJJJ"
+                        value={dueDateDisplay}
+                        onChange={e => {
+                          setDueDateDisplay(e.target.value)
+                          const iso = displayToIso(e.target.value)
+                          if (iso) setFormData({ ...formData, due_date: iso })
+                        }}
+                        className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Leistungszeitraum</label>
                       <div className="flex items-center gap-1.5">
                         <input
-                          type="date"
-                          value={spFrom}
+                          type="text"
+                          placeholder="TT.MM.JJJJ"
+                          value={spFromDisplay}
                           onChange={e => {
-                            setSpFrom(e.target.value)
-                            setFormData({ ...formData, service_period: fmtServicePeriod(e.target.value, spTo) })
+                            setSpFromDisplay(e.target.value)
+                            const iso = displayToIso(e.target.value)
+                            setSpFrom(iso)
+                            setFormData({ ...formData, service_period: fmtServicePeriod(iso, spTo) })
                           }}
-                          className="w-[155px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                          className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                         />
                         <span className="text-gray-400 text-sm shrink-0">–</span>
                         <input
-                          type="date"
-                          value={spTo}
+                          type="text"
+                          placeholder="TT.MM.JJJJ"
+                          value={spToDisplay}
                           onChange={e => {
-                            setSpTo(e.target.value)
-                            setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, e.target.value) })
+                            setSpToDisplay(e.target.value)
+                            const iso = displayToIso(e.target.value)
+                            setSpTo(iso)
+                            setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, iso) })
                           }}
-                          className="w-[155px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                          className="w-[110px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                         />
                       </div>
                     </div>
