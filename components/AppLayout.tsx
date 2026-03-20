@@ -54,7 +54,7 @@ function NavIcon({ name, className = "w-[18px] h-[18px]" }: { name: string; clas
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null)
   const [company, setCompany] = useState<any>(null)
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Verkauf: true, Einkauf: true, 'Projekte & Zeit': true, Buchhaltung: true })
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
@@ -63,8 +63,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   useEffect(() => {
-    // Close sidebar on navigation on mobile
     setSidebarOpen(false)
+    setOpenGroups({})
   }, [pathname])
 
   useEffect(() => {
@@ -183,7 +183,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 overflow-y-auto py-2 px-2">
           {navItems.map((item, i) => {
             if ('children' in item) {
-              const isOpen = openGroups[item.label]
+              const isOpen = openGroups[item.label] ?? hasActive
               const hasActive = item.children?.some(c => isActive(c.href))
               return (
                 <div key={item.label}>

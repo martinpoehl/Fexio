@@ -305,35 +305,6 @@ export default function ContactsContent() {
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1">
-              {/* Contact type toggle */}
-              <div className="mb-6">
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Kontakttyp</label>
-                <div className="flex rounded-lg border border-gray-200 overflow-hidden w-fit">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, contact_type: 'firma' })}
-                    className={`px-6 py-2.5 text-sm font-semibold transition-colors ${
-                      formData.contact_type === 'firma'
-                        ? 'bg-[#1e3a5f] text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    Firma
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, contact_type: 'person' })}
-                    className={`px-6 py-2.5 text-sm font-semibold transition-colors border-l border-gray-200 ${
-                      formData.contact_type === 'person'
-                        ? 'bg-gray-600 text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    Person
-                  </button>
-                </div>
-              </div>
-
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Vorname</label>
