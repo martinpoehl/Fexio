@@ -309,6 +309,160 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: TEXT_LIGHT,
   },
+
+  // ── Rapport sections ──
+  sectionTitle: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  sectionHeader: {
+    backgroundColor: NAVY,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: 3,
+    marginBottom: 1,
+    flexDirection: 'row',
+  },
+  sectionTable: {
+    marginBottom: 14,
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+  },
+  sectionRowEven: { backgroundColor: LIGHT_GRAY },
+  sectionRowOdd:  { backgroundColor: '#FFFFFF' },
+  sectionCell: {
+    fontSize: 8,
+    color: TEXT_DARK,
+  },
+  sectionSubtotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderTopWidth: 1,
+    borderTopColor: MID_GRAY,
+    marginTop: 1,
+  },
+  sectionSubtotalLabel: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: NAVY,
+    marginRight: 8,
+  },
+  sectionSubtotalValue: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: NAVY,
+    width: 70,
+    textAlign: 'right',
+  },
+
+  // Rapport column widths – Ausgeführte Arbeiten
+  rColDatum:       { width: 58 },
+  rColZeit:        { width: 36, textAlign: 'right' },
+  rColArbeiter:    { width: 65 },
+  rColStundensatz: { width: 60, textAlign: 'right' },
+  rColTaetigkeit:  { flex: 1 },
+  rColKosten:      { width: 65, textAlign: 'right' },
+
+  // Rapport column widths – Material
+  mColBeschrieb:  { flex: 1 },
+  mColMenge:      { width: 40, textAlign: 'right' },
+  mColEinheit:    { width: 44 },
+  mColStueckpreis:{ width: 65, textAlign: 'right' },
+  mColKosten:     { width: 65, textAlign: 'right' },
+
+  // Rapport column widths – Spesen
+  sColKilometer: { width: 58, textAlign: 'right' },
+  sColAnsatz:    { width: 58, textAlign: 'right' },
+  sColBeschrieb: { flex: 1 },
+  sColKosten:    { width: 65, textAlign: 'right' },
+
+  // ── Rapport footer ──
+  rapportFooter: {
+    flexDirection: 'row',
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: MID_GRAY,
+    paddingTop: 12,
+    gap: 20,
+  },
+  rapportBemerkung: {
+    flex: 1,
+  },
+  rapportBemerkungLabel: {
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    color: TEXT_LIGHT,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 40,
+  },
+  rapportTotals: {
+    width: 180,
+  },
+  rapportTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 3,
+  },
+  rapportTotalLabel: {
+    fontSize: 8.5,
+    color: TEXT_MID,
+  },
+  rapportTotalValue: {
+    fontSize: 8.5,
+    color: TEXT_DARK,
+  },
+  rapportGrandRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 1.5,
+    borderTopColor: GREEN,
+    paddingTop: 5,
+    marginTop: 4,
+  },
+  rapportGrandLabel: {
+    fontSize: 10,
+    fontFamily: 'Helvetica-Bold',
+    color: NAVY,
+  },
+  rapportGrandValue: {
+    fontSize: 10,
+    fontFamily: 'Helvetica-Bold',
+    color: GREEN,
+  },
+
+  // ── Signatures ──
+  signatureArea: {
+    flexDirection: 'row',
+    marginTop: 28,
+    gap: 20,
+  },
+  signatureBox: {
+    flex: 1,
+  },
+  signatureLabel: {
+    fontSize: 8,
+    color: TEXT_MID,
+    marginBottom: 28,
+  },
+  signatureLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: TEXT_DARK,
+    marginBottom: 4,
+  },
+  signatureSubLabel: {
+    fontSize: 7,
+    color: TEXT_LIGHT,
+  },
 })
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -373,6 +527,13 @@ export function InvoicePDF({
   const logoSrc = logoBase64 || company.logo_url || null
 
   const hasDiscount = lines.some(l => l.discount && l.discount > 0)
+
+  // Rapport: categorise lines by unit
+  const arbeitenLines = lines.filter(l => ['h', 'Std', 'Std.'].includes(l.unit))
+  const spesenLines   = lines.filter(l => l.unit === 'km')
+  const materialLines = lines.filter(l => !['h', 'Std', 'Std.', 'km'].includes(l.unit))
+
+  const sumLines = (ls: DocumentLine[]) => ls.reduce((s, l) => s + l.total, 0)
 
   return (
     <Document>
@@ -458,95 +619,221 @@ export function InvoicePDF({
 
           <View style={styles.divider} />
 
-          {/* ── Intro text ── */}
+          {/* ── Title ── */}
           <View style={{ marginBottom: 16 }}>
             <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: NAVY, marginBottom: 14 }}>{docTitle}</Text>
-            <Text style={{ fontSize: 9, color: TEXT_DARK, marginBottom: 14 }}>Sehr geehrte Damen und Herren,</Text>
-            <Text style={{ fontSize: 9, color: TEXT_DARK, marginBottom: 6 }}>Vielen Dank für Ihren Auftrag.</Text>
-            <Text style={{ fontSize: 9, color: TEXT_DARK }}>
-              {isRapport
-                ? `Wir bestätigen folgende erbrachten Leistungen:`
-                : `Wir stellen Ihnen folgende Leistungen${doc.reference ? ` gemäss Rapport Nr. ${doc.reference}` : ''} in Rechnung:`}
-            </Text>
           </View>
 
-          {/* ── Table ── */}
-          <View style={styles.table}>
-            {/* Header row */}
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderCell, styles.colPos]}>Pos</Text>
-              <Text style={[styles.tableHeaderCell, styles.colDesc]}>Beschreibung</Text>
-              <Text style={[styles.tableHeaderCell, styles.colQty]}>Menge</Text>
-              <Text style={[styles.tableHeaderCell, styles.colUnit]}>Einheit</Text>
-              <Text style={[styles.tableHeaderCell, styles.colPrice]}>Preis</Text>
-              {hasDiscount && <Text style={[styles.tableHeaderCell, styles.colDiscount]}>Rabatt</Text>}
-              <Text style={[styles.tableHeaderCell, styles.colTax]}>MwSt</Text>
-              <Text style={[styles.tableHeaderCell, styles.colTotal]}>Total</Text>
-            </View>
+          {isRapport ? (
+            <>
+              {/* ══ RAPPORT LAYOUT ══ */}
 
-            {/* Data rows */}
-            {lines.map((line, idx) => (
-              <View
-                key={idx}
-                style={[
-                  styles.tableRow,
-                  idx % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd,
-                ]}
-              >
-                <Text style={[styles.tableCell, styles.colPos]}>{line.position}</Text>
-                <Text style={[styles.tableCell, styles.colDesc]}>{line.description}</Text>
-                <Text style={[styles.tableCell, styles.colQty]}>{fNum(line.quantity)}</Text>
-                <Text style={[styles.tableCell, styles.colUnit]}>{line.unit}</Text>
-                <Text style={[styles.tableCell, styles.colPrice]}>{fNum(line.unit_price)}</Text>
-                {hasDiscount && (
-                  <Text style={[styles.tableCell, styles.colDiscount]}>
-                    {line.discount && line.discount > 0 ? `${line.discount}%` : ''}
-                  </Text>
+              {/* ── Ausgeführte Arbeiten ── */}
+              <View style={styles.sectionTable}>
+                <View style={styles.sectionHeader}>
+                  <Text style={[styles.sectionTitle, styles.rColDatum]}>Datum</Text>
+                  <Text style={[styles.sectionTitle, styles.rColZeit]}>Zeit h</Text>
+                  <Text style={[styles.sectionTitle, styles.rColArbeiter]}>Arbeiter</Text>
+                  <Text style={[styles.sectionTitle, styles.rColStundensatz]}>Stundensatz</Text>
+                  <Text style={[styles.sectionTitle, styles.rColTaetigkeit]}>Tätigkeit</Text>
+                  <Text style={[styles.sectionTitle, styles.rColKosten]}>Kosten</Text>
+                </View>
+                {arbeitenLines.map((l, i) => (
+                  <View key={i} style={[styles.sectionRow, i % 2 === 0 ? styles.sectionRowEven : styles.sectionRowOdd]}>
+                    <Text style={[styles.sectionCell, styles.rColDatum]}></Text>
+                    <Text style={[styles.sectionCell, styles.rColZeit]}>{fNum(l.quantity)}</Text>
+                    <Text style={[styles.sectionCell, styles.rColArbeiter]}></Text>
+                    <Text style={[styles.sectionCell, styles.rColStundensatz]}>{fNum(l.unit_price)}</Text>
+                    <Text style={[styles.sectionCell, styles.rColTaetigkeit]}>{l.description}</Text>
+                    <Text style={[styles.sectionCell, styles.rColKosten]}>{fNum(l.total)}</Text>
+                  </View>
+                ))}
+                {arbeitenLines.length === 0 && (
+                  <View style={[styles.sectionRow, styles.sectionRowEven]}>
+                    <Text style={[styles.sectionCell, { color: TEXT_LIGHT }]}>–</Text>
+                  </View>
                 )}
-                <Text style={[styles.tableCell, styles.colTax]}>{line.tax_rate}%</Text>
-                <Text style={[styles.tableCell, styles.colTotal]}>{fNum(line.total)}</Text>
+                <View style={styles.sectionSubtotalRow}>
+                  <Text style={styles.sectionSubtotalLabel}>Total Arbeiten</Text>
+                  <Text style={styles.sectionSubtotalValue}>{fCHF(sumLines(arbeitenLines))}</Text>
+                </View>
               </View>
-            ))}
-          </View>
 
-          {/* ── Totals ── */}
-          <View style={styles.totalsSection}>
-            <View style={styles.totalsBox}>
-              <View style={styles.totalsRow}>
-                <Text style={styles.totalsLabel}>Nettobetrag</Text>
-                <Text style={styles.totalsValue}>{fCHF(doc.subtotal)}</Text>
+              {/* ── Material ── */}
+              <View style={styles.sectionTable}>
+                <View style={styles.sectionHeader}>
+                  <Text style={[styles.sectionTitle, styles.mColBeschrieb]}>Beschrieb</Text>
+                  <Text style={[styles.sectionTitle, styles.mColMenge]}>Menge</Text>
+                  <Text style={[styles.sectionTitle, styles.mColEinheit]}>Einheit</Text>
+                  <Text style={[styles.sectionTitle, styles.mColStueckpreis]}>Stückpreis</Text>
+                  <Text style={[styles.sectionTitle, styles.mColKosten]}>Kosten</Text>
+                </View>
+                {materialLines.map((l, i) => (
+                  <View key={i} style={[styles.sectionRow, i % 2 === 0 ? styles.sectionRowEven : styles.sectionRowOdd]}>
+                    <Text style={[styles.sectionCell, styles.mColBeschrieb]}>{l.description}</Text>
+                    <Text style={[styles.sectionCell, styles.mColMenge]}>{fNum(l.quantity)}</Text>
+                    <Text style={[styles.sectionCell, styles.mColEinheit]}>{l.unit}</Text>
+                    <Text style={[styles.sectionCell, styles.mColStueckpreis]}>{fNum(l.unit_price)}</Text>
+                    <Text style={[styles.sectionCell, styles.mColKosten]}>{fNum(l.total)}</Text>
+                  </View>
+                ))}
+                {materialLines.length === 0 && (
+                  <View style={[styles.sectionRow, styles.sectionRowEven]}>
+                    <Text style={[styles.sectionCell, { color: TEXT_LIGHT }]}>–</Text>
+                  </View>
+                )}
+                <View style={styles.sectionSubtotalRow}>
+                  <Text style={styles.sectionSubtotalLabel}>Total Material</Text>
+                  <Text style={styles.sectionSubtotalValue}>{fCHF(sumLines(materialLines))}</Text>
+                </View>
               </View>
-              <View style={styles.totalsRow}>
-                <Text style={styles.totalsLabel}>MwSt</Text>
-                <Text style={styles.totalsValue}>{fCHF(doc.tax_amount)}</Text>
-              </View>
-              <View style={styles.totalsFinalRow}>
-                <Text style={styles.totalsFinalLabel}>Total</Text>
-                <Text style={styles.totalsFinalValue}>{fCHF(doc.total)}</Text>
-              </View>
-            </View>
-          </View>
 
-          {/* ── Payment info ── */}
-          {company.iban && (
-            <View style={styles.paymentSection}>
-              <Text style={styles.paymentLabel}>Zahlbar an</Text>
-              <Text style={styles.paymentValue}>{company.name}</Text>
-              <Text style={styles.paymentValue}>IBAN: {company.iban}</Text>
-            </View>
+              {/* ── Spesenabrechnung ── */}
+              <View style={styles.sectionTable}>
+                <View style={styles.sectionHeader}>
+                  <Text style={[styles.sectionTitle, styles.sColKilometer]}>Kilometer</Text>
+                  <Text style={[styles.sectionTitle, styles.sColAnsatz]}>Ansatz</Text>
+                  <Text style={[styles.sectionTitle, styles.sColBeschrieb]}>Beschrieb</Text>
+                  <Text style={[styles.sectionTitle, styles.sColKosten]}>Kosten</Text>
+                </View>
+                {spesenLines.map((l, i) => (
+                  <View key={i} style={[styles.sectionRow, i % 2 === 0 ? styles.sectionRowEven : styles.sectionRowOdd]}>
+                    <Text style={[styles.sectionCell, styles.sColKilometer]}>{fNum(l.quantity)}</Text>
+                    <Text style={[styles.sectionCell, styles.sColAnsatz]}>{fNum(l.unit_price)}</Text>
+                    <Text style={[styles.sectionCell, styles.sColBeschrieb]}>{l.description}</Text>
+                    <Text style={[styles.sectionCell, styles.sColKosten]}>{fNum(l.total)}</Text>
+                  </View>
+                ))}
+                {spesenLines.length === 0 && (
+                  <View style={[styles.sectionRow, styles.sectionRowEven]}>
+                    <Text style={[styles.sectionCell, { color: TEXT_LIGHT }]}>–</Text>
+                  </View>
+                )}
+                <View style={styles.sectionSubtotalRow}>
+                  <Text style={styles.sectionSubtotalLabel}>Total Spesen</Text>
+                  <Text style={styles.sectionSubtotalValue}>{fCHF(sumLines(spesenLines))}</Text>
+                </View>
+              </View>
+
+              {/* ── Footer: Bemerkung + Totals ── */}
+              <View style={styles.rapportFooter}>
+                <View style={styles.rapportBemerkung}>
+                  <Text style={styles.rapportBemerkungLabel}>Sonstiges / Bemerkung</Text>
+                  {doc.notes ? (
+                    <Text style={{ fontSize: 8.5, color: TEXT_DARK }}>{doc.notes}</Text>
+                  ) : null}
+                </View>
+                <View style={styles.rapportTotals}>
+                  <View style={styles.rapportTotalRow}>
+                    <Text style={styles.rapportTotalLabel}>Rechnungsbetrag</Text>
+                    <Text style={styles.rapportTotalValue}>{fCHF(doc.subtotal)}</Text>
+                  </View>
+                  <View style={styles.rapportTotalRow}>
+                    <Text style={styles.rapportTotalLabel}>MwSt</Text>
+                    <Text style={styles.rapportTotalValue}>{fCHF(doc.tax_amount)}</Text>
+                  </View>
+                  <View style={styles.rapportGrandRow}>
+                    <Text style={styles.rapportGrandLabel}>Rechnungstotal</Text>
+                    <Text style={styles.rapportGrandValue}>{fCHF(doc.total)}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* ── Signatures ── */}
+              <View style={styles.signatureArea}>
+                <View style={styles.signatureBox}>
+                  <Text style={styles.signatureLabel}>Ort / Datum</Text>
+                  <View style={styles.signatureLine} />
+                  <Text style={styles.signatureSubLabel}>Unterschrift Kunde</Text>
+                </View>
+                <View style={styles.signatureBox}>
+                  <Text style={styles.signatureLabel}>Ort / Datum</Text>
+                  <View style={styles.signatureLine} />
+                  <Text style={styles.signatureSubLabel}>Unterschrift Monteur</Text>
+                </View>
+              </View>
+            </>
+          ) : (
+            <>
+              {/* ══ RECHNUNG LAYOUT ══ */}
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: 9, color: TEXT_DARK, marginBottom: 14 }}>Sehr geehrte Damen und Herren,</Text>
+                <Text style={{ fontSize: 9, color: TEXT_DARK, marginBottom: 6 }}>Vielen Dank für Ihren Auftrag.</Text>
+                <Text style={{ fontSize: 9, color: TEXT_DARK }}>
+                  {`Wir stellen Ihnen folgende Leistungen${doc.reference ? ` gemäss Rapport Nr. ${doc.reference}` : ''} in Rechnung:`}
+                </Text>
+              </View>
+
+              {/* Table */}
+              <View style={styles.table}>
+                <View style={styles.tableHeader}>
+                  <Text style={[styles.tableHeaderCell, styles.colPos]}>Pos</Text>
+                  <Text style={[styles.tableHeaderCell, styles.colDesc]}>Beschreibung</Text>
+                  <Text style={[styles.tableHeaderCell, styles.colQty]}>Menge</Text>
+                  <Text style={[styles.tableHeaderCell, styles.colUnit]}>Einheit</Text>
+                  <Text style={[styles.tableHeaderCell, styles.colPrice]}>Preis</Text>
+                  {hasDiscount && <Text style={[styles.tableHeaderCell, styles.colDiscount]}>Rabatt</Text>}
+                  <Text style={[styles.tableHeaderCell, styles.colTax]}>MwSt</Text>
+                  <Text style={[styles.tableHeaderCell, styles.colTotal]}>Total</Text>
+                </View>
+                {lines.map((line, idx) => (
+                  <View key={idx} style={[styles.tableRow, idx % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd]}>
+                    <Text style={[styles.tableCell, styles.colPos]}>{line.position}</Text>
+                    <Text style={[styles.tableCell, styles.colDesc]}>{line.description}</Text>
+                    <Text style={[styles.tableCell, styles.colQty]}>{fNum(line.quantity)}</Text>
+                    <Text style={[styles.tableCell, styles.colUnit]}>{line.unit}</Text>
+                    <Text style={[styles.tableCell, styles.colPrice]}>{fNum(line.unit_price)}</Text>
+                    {hasDiscount && (
+                      <Text style={[styles.tableCell, styles.colDiscount]}>
+                        {line.discount && line.discount > 0 ? `${line.discount}%` : ''}
+                      </Text>
+                    )}
+                    <Text style={[styles.tableCell, styles.colTax]}>{line.tax_rate}%</Text>
+                    <Text style={[styles.tableCell, styles.colTotal]}>{fNum(line.total)}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Totals */}
+              <View style={styles.totalsSection}>
+                <View style={styles.totalsBox}>
+                  <View style={styles.totalsRow}>
+                    <Text style={styles.totalsLabel}>Nettobetrag</Text>
+                    <Text style={styles.totalsValue}>{fCHF(doc.subtotal)}</Text>
+                  </View>
+                  <View style={styles.totalsRow}>
+                    <Text style={styles.totalsLabel}>MwSt</Text>
+                    <Text style={styles.totalsValue}>{fCHF(doc.tax_amount)}</Text>
+                  </View>
+                  <View style={styles.totalsFinalRow}>
+                    <Text style={styles.totalsFinalLabel}>Total</Text>
+                    <Text style={styles.totalsFinalValue}>{fCHF(doc.total)}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Payment info */}
+              {company.iban && (
+                <View style={styles.paymentSection}>
+                  <Text style={styles.paymentLabel}>Zahlbar an</Text>
+                  <Text style={styles.paymentValue}>{company.name}</Text>
+                  <Text style={styles.paymentValue}>IBAN: {company.iban}</Text>
+                </View>
+              )}
+
+              {/* Notes */}
+              {doc.notes && <Text style={styles.notes}>{doc.notes}</Text>}
+
+              {/* Closing */}
+              <View style={{ marginTop: 20, paddingTop: 14, borderTopWidth: 1, borderTopColor: MID_GRAY }}>
+                <Text style={{ fontSize: 8.5, color: TEXT_MID, marginBottom: 10 }}>
+                  Zahlungsbedingungen: Zahlung innerhalb von 30 Tagen ab Rechnungseingang.
+                </Text>
+                <Text style={{ fontSize: 8.5, color: TEXT_DARK }}>Mit freundlichen Grüssen</Text>
+                <Text style={{ fontSize: 8.5, color: TEXT_DARK, marginTop: 4, fontFamily: 'Helvetica-Bold' }}>Stefan Pöhl</Text>
+              </View>
+            </>
           )}
-
-          {/* ── Notes ── */}
-          {doc.notes && <Text style={styles.notes}>{doc.notes}</Text>}
-
-          {/* ── Closing text ── */}
-          <View style={{ marginTop: 20, paddingTop: 14, borderTopWidth: 1, borderTopColor: MID_GRAY }}>
-            <Text style={{ fontSize: 8.5, color: TEXT_MID, marginBottom: 10 }}>
-              Zahlungsbedingungen: Zahlung innerhalb von 30 Tagen ab Rechnungseingang.
-            </Text>
-            <Text style={{ fontSize: 8.5, color: TEXT_DARK }}>Mit freundlichen Grüssen</Text>
-            <Text style={{ fontSize: 8.5, color: TEXT_DARK, marginTop: 4, fontFamily: 'Helvetica-Bold' }}>Stefan Pöhl</Text>
-          </View>
         </View>
 
         {/* ── Page number ── */}
