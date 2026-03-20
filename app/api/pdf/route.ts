@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const { data: doc, error: docError } = await supabase
       .from('documents')
       .select(
-        'id, number, date, due_date, service_period, status, notes, contact_name, subtotal, tax_amount, total, type, company_id, contact_id'
+        'id, number, date, due_date, service_period, reference, status, notes, contact_name, subtotal, tax_amount, total, type, company_id, contact_id'
       )
       .eq('id', documentId)
       .single()

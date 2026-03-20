@@ -28,6 +28,7 @@ interface FormData {
   date: string
   due_date: string
   service_period: string
+  reference: string
   status: string
   notes: string
 }
@@ -333,6 +334,7 @@ export default function InvoicesContent() {
         date: doc.date || new Date().toISOString().split('T')[0],
         due_date: doc.due_date || '',
         service_period: doc.service_period || '',
+        reference: doc.reference || '',
         status: doc.status || 'entwurf',
         notes: doc.notes || '',
       })
@@ -373,6 +375,7 @@ export default function InvoicesContent() {
         date: new Date().toISOString().split('T')[0],
         due_date: dueDate.toISOString().split('T')[0],
         service_period: '',
+        reference: '',
         status: 'entwurf',
         notes: '',
       })
@@ -471,9 +474,9 @@ export default function InvoicesContent() {
       }
 
       let { error: saveError, id: savedId } = await saveDoc(docPayload)
-      if (saveError?.message?.includes('service_period')) {
-        const { service_period: _sp, ...withoutSP } = docPayload;
-        ({ error: saveError, id: savedId } = await saveDoc(withoutSP))
+      if (saveError?.message?.includes('service_period') || saveError?.message?.includes('reference')) {
+        const { service_period: _sp, reference: _ref, ...withoutNew } = docPayload;
+        ({ error: saveError, id: savedId } = await saveDoc(withoutNew))
       }
       if (saveError) throw saveError
       documentId = savedId
@@ -1294,6 +1297,16 @@ export default function InvoicesContent() {
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Rapport Nr.</label>
+                  <input
+                    type="text"
+                    value={formData.reference}
+                    onChange={e => setFormData({ ...formData, reference: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                    placeholder="z.B. AR-0012"
+                  />
                 </div>
                 <div className="col-span-2 sm:col-span-3">
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Notizen</label>

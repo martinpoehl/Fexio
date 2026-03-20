@@ -20,6 +20,7 @@ interface InvoicePDFProps {
     date: string
     due_date?: string
     service_period?: string
+    reference?: string
     status: string
     notes?: string
     contact_name?: string
@@ -441,6 +442,14 @@ export function InvoicePDF({
           </View>
 
           <View style={styles.divider} />
+
+          {/* ── Intro text ── */}
+          <View style={{ marginBottom: 16 }}>
+            <Text style={{ fontSize: 9, color: TEXT_DARK, marginBottom: 14 }}>Sehr geehrte Damen und Herren,</Text>
+            <Text style={{ fontSize: 9, color: TEXT_DARK }}>
+              {`Vielen Dank für Ihren Auftrag. Wir stellen Ihnen folgende Leistungen${doc.reference ? ` gemäss Rapport Nr. ${doc.reference}` : ''} in Rechnung:`}
+            </Text>
+          </View>
 
           {/* ── Table ── */}
           <View style={styles.table}>
