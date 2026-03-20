@@ -1332,13 +1332,14 @@ export default function InvoicesContent() {
                       </div>
 
                       {/* Unit */}
-                      <input
-                        type="text"
-                        placeholder="Stk."
+                      <select
                         value={line.unit}
                         onChange={e => updateLine(idx, { unit: e.target.value })}
-                        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
-                      />
+                        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30 bg-white"
+                      >
+                        <option value="Stk.">Stk.</option>
+                        <option value="Std.">Std.</option>
+                      </select>
 
                       {/* Unit price */}
                       <input
