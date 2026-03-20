@@ -442,7 +442,7 @@ export function InvoicePDF({
 
           {/* ── Intro text ── */}
           <View style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: NAVY, marginBottom: 10 }}>Rechnung</Text>
+            <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: NAVY, marginBottom: 14 }}>Rechnung</Text>
             <Text style={{ fontSize: 9, color: TEXT_DARK, marginBottom: 14 }}>Sehr geehrte Damen und Herren,</Text>
             <Text style={{ fontSize: 9, color: TEXT_DARK }}>
               {`Vielen Dank für Ihren Auftrag. Wir stellen Ihnen folgende Leistungen${doc.reference ? ` gemäss Rapport Nr. ${doc.reference}` : ''} in Rechnung:`}
