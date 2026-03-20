@@ -59,6 +59,8 @@ export default function InvoicesContent() {
   const [statusFilter, setStatusFilter] = useState('alle')
   const [showModal, setShowModal] = useState(false)
   const [editingDoc, setEditingDoc] = useState<any>(null)
+  const [spFrom, setSpFrom] = useState('')
+  const [spTo, setSpTo] = useState('')
 
   const [formData, setFormData] = useState<FormData>({
     number: '',
@@ -75,6 +77,20 @@ export default function InvoicesContent() {
   const [lines, setLines] = useState<LineItem[]>([])
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+
+  const fmtServicePeriod = (from: string, to: string) => {
+    const fmt = (d: string) => { const [y,m,day] = d.split('-'); return `${day}.${m}.${y}` }
+    if (from && to) return `${fmt(from)} - ${fmt(to)}`
+    if (from) return fmt(from)
+    return ''
+  }
+
+  const parseServicePeriod = (val: string): [string, string] => {
+    const parts = val.split(' - ')
+    const toIso = (d: string) => { const [day,m,y] = d.split('.'); return `${y}-${m}-${day}` }
+    if (parts.length === 2) return [toIso(parts[0]), toIso(parts[1])]
+    return ['', '']
+  }
 
   // ─── Time entries import state ───────────────────────────────────────────────
   const [showTimeModal, setShowTimeModal] = useState(false)
@@ -306,6 +322,9 @@ export default function InvoicesContent() {
     setImportedExpenseIds([])
     if (doc) {
       setEditingDoc(doc)
+      const [parsedFrom, parsedTo] = parseServicePeriod(doc.service_period || '')
+      setSpFrom(parsedFrom)
+      setSpTo(parsedTo)
       setFormData({
         number: doc.number || '',
         title: doc.title || '',
@@ -357,6 +376,8 @@ export default function InvoicesContent() {
         status: 'entwurf',
         notes: '',
       })
+      setSpFrom('')
+      setSpTo('')
       setLines([])
     }
     setShowModal(true)
@@ -1250,15 +1271,29 @@ export default function InvoicesContent() {
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
                   />
                 </div>
-                <div>
+                <div className="col-span-2 sm:col-span-1">
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Leistungszeitraum</label>
-                  <input
-                    type="text"
-                    value={formData.service_period}
-                    onChange={e => setFormData({ ...formData, service_period: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
-                    placeholder="z.B. März 2026"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={spFrom}
+                      onChange={e => {
+                        setSpFrom(e.target.value)
+                        setFormData({ ...formData, service_period: fmtServicePeriod(e.target.value, spTo) })
+                      }}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                    />
+                    <span className="text-gray-400 text-sm shrink-0">–</span>
+                    <input
+                      type="date"
+                      value={spTo}
+                      onChange={e => {
+                        setSpTo(e.target.value)
+                        setFormData({ ...formData, service_period: fmtServicePeriod(spFrom, e.target.value) })
+                      }}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                    />
+                  </div>
                 </div>
                 <div className="col-span-2 sm:col-span-3">
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Notizen</label>
