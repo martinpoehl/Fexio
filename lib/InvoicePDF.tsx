@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   metaBlock: {
-    width: 160,
+    width: 190,
     alignItems: 'flex-end',
   },
   metaRow: {
