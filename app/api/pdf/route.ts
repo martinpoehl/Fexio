@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     // ── Fetch document lines ────────────────────────────────────────────────
     const { data: lines, error: linesError } = await supabase
       .from('document_lines')
-      .select('position, description, quantity, unit, unit_price, discount, tax_rate, total')
+      .select('position, description, quantity, unit, unit_price, discount, tax_rate, total, line_date, line_worker')
       .eq('document_id', documentId)
       .order('position')
 

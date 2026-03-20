@@ -18,6 +18,8 @@ interface LineItem {
   discount: number     // 0-100 %
   tax_rate: number
   total: number        // calculated: quantity * unit_price * (1 - discount/100) * (1 + tax_rate/100)
+  line_date?: string   // Datum (Ausgeführte Arbeiten)
+  line_worker?: string // Arbeiter (Ausgeführte Arbeiten)
 }
 
 interface FormData {
@@ -389,6 +391,8 @@ export default function InvoicesContent() {
             discount: Number(l.discount) || 0,
             tax_rate: Number(l.tax_rate) ?? 8.1,
             total: Number(l.total) || 0,
+            line_date: l.line_date || '',
+            line_worker: l.line_worker || '',
           }))
         )
       } else {
@@ -437,6 +441,18 @@ export default function InvoicesContent() {
 
   const addLine = () => {
     setLines(prev => [...prev, emptyLine(prev.length + 1)])
+  }
+
+  const addArbeitenLine = () => {
+    setLines(prev => [...prev, { ...emptyLine(prev.length + 1), unit: 'h', line_date: '', line_worker: '' }])
+  }
+
+  const addMaterialLine = () => {
+    setLines(prev => [...prev, { ...emptyLine(prev.length + 1), unit: 'Stk.' }])
+  }
+
+  const addSpesenLine = () => {
+    setLines(prev => [...prev, { ...emptyLine(prev.length + 1), unit: 'km' }])
   }
 
   const deleteLine = (index: number) => {
@@ -537,6 +553,8 @@ export default function InvoicesContent() {
           discount: l.discount || 0,
           tax_rate: l.tax_rate,
           total: l.total,
+          line_date: l.line_date || '',
+          line_worker: l.line_worker || '',
         }))
         const { error: linesErr } = await supabase
           .from('document_lines')
@@ -1413,140 +1431,156 @@ export default function InvoicesContent() {
 
               {/* ── Line items ── */}
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Positionen</h3>
-                  <div className="flex items-center gap-3">
-                    {(typeFilter === 'invoice' || typeFilter === 'order') && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={handleOpenTimeModal}
-                          className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
-                        >
+                {typeFilter === 'order' ? (
+                  /* ══ RAPPORT: drei separate Sektionen ══ */
+                  <div className="space-y-6">
+
+                    {/* ── Ausgeführte Arbeiten ── */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs font-semibold text-[#1B2A4A] uppercase tracking-wider">Ausgeführte Arbeiten</h3>
+                        <button type="button" onClick={addArbeitenLine} className="flex items-center gap-1 text-xs font-semibold text-[#00875A] hover:text-[#006B47] transition-colors">
+                          <Plus size={13} /> Zeile hinzufügen
+                        </button>
+                      </div>
+                      <div className="hidden md:grid grid-cols-[100px_70px_90px_80px_1fr_70px_28px] gap-1.5 mb-1 px-1">
+                        {['Datum', 'Zeit h', 'Arbeiter', 'Stundensatz', 'Tätigkeit', 'Total', ''].map(h => (
+                          <span key={h} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{h}</span>
+                        ))}
+                      </div>
+                      <div className="space-y-1.5">
+                        {lines.filter(l => l.unit === 'h').map((line) => {
+                          const idx = lines.indexOf(line)
+                          return (
+                            <div key={idx} className="grid grid-cols-1 md:grid-cols-[100px_70px_90px_80px_1fr_70px_28px] gap-1.5 items-center bg-blue-50/40 rounded-lg p-2 border border-blue-100">
+                              <input type="text" placeholder="TT.MM.JJJJ" value={line.line_date || ''} onChange={e => updateLine(idx, { line_date: e.target.value })} className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400/40" />
+                              <input type="number" min="0" step="0.25" value={line.quantity || ''} onChange={e => updateLine(idx, { quantity: Math.max(0, Number(e.target.value)) })} placeholder="0" className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-400/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              <input type="text" placeholder="Name" value={line.line_worker || ''} onChange={e => updateLine(idx, { line_worker: e.target.value })} className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400/40" />
+                              <input type="number" min="0" step="0.05" value={line.unit_price === 0 ? '' : line.unit_price} onChange={e => updateLine(idx, { unit_price: Number(e.target.value) || 0 })} placeholder="CHF/h" className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              <input type="text" placeholder="Tätigkeit beschreiben..." value={line.description} onChange={e => updateLine(idx, { description: e.target.value })} className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400/40" />
+                              <div className="px-2 py-1.5 text-sm font-semibold text-gray-700 text-right whitespace-nowrap">{fCHF(line.total)}</div>
+                              <button type="button" onClick={() => deleteLine(idx)} className="flex items-center justify-center w-7 h-7 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X size={14} /></button>
+                            </div>
+                          )
+                        })}
+                        {lines.filter(l => l.unit === 'h').length === 0 && (
+                          <p className="text-xs text-gray-400 italic px-1">Noch keine Einträge</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ── Material ── */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs font-semibold text-[#1B2A4A] uppercase tracking-wider">Material</h3>
+                        <button type="button" onClick={addMaterialLine} className="flex items-center gap-1 text-xs font-semibold text-[#00875A] hover:text-[#006B47] transition-colors">
+                          <Plus size={13} /> Zeile hinzufügen
+                        </button>
+                      </div>
+                      <div className="hidden md:grid grid-cols-[1fr_70px_80px_80px_70px_28px] gap-1.5 mb-1 px-1">
+                        {['Beschrieb', 'Menge', 'Einheit', 'Stückzahl', 'Total', ''].map(h => (
+                          <span key={h} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{h}</span>
+                        ))}
+                      </div>
+                      <div className="space-y-1.5">
+                        {lines.filter(l => l.unit !== 'h' && l.unit !== 'km').map((line) => {
+                          const idx = lines.indexOf(line)
+                          return (
+                            <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr_70px_80px_80px_70px_28px] gap-1.5 items-center bg-orange-50/40 rounded-lg p-2 border border-orange-100">
+                              <input type="text" placeholder="Beschrieb" value={line.description} onChange={e => updateLine(idx, { description: e.target.value })} className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-orange-400/40" />
+                              <input type="number" min="0" step="0.01" value={line.quantity || ''} onChange={e => updateLine(idx, { quantity: Math.max(0, Number(e.target.value)) })} placeholder="0" className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-1 focus:ring-orange-400/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              <input type="text" placeholder="Stk." value={line.unit} onChange={e => updateLine(idx, { unit: e.target.value })} className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-orange-400/40" />
+                              <input type="number" min="0" step="0.05" value={line.unit_price === 0 ? '' : line.unit_price} onChange={e => updateLine(idx, { unit_price: Number(e.target.value) || 0 })} placeholder="CHF" className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-orange-400/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              <div className="px-2 py-1.5 text-sm font-semibold text-gray-700 text-right whitespace-nowrap">{fCHF(line.total)}</div>
+                              <button type="button" onClick={() => deleteLine(idx)} className="flex items-center justify-center w-7 h-7 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X size={14} /></button>
+                            </div>
+                          )
+                        })}
+                        {lines.filter(l => l.unit !== 'h' && l.unit !== 'km').length === 0 && (
+                          <p className="text-xs text-gray-400 italic px-1">Noch keine Einträge</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ── Spesenabrechnung ── */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs font-semibold text-[#1B2A4A] uppercase tracking-wider">Spesenabrechnung</h3>
+                        <button type="button" onClick={addSpesenLine} className="flex items-center gap-1 text-xs font-semibold text-[#00875A] hover:text-[#006B47] transition-colors">
+                          <Plus size={13} /> Zeile hinzufügen
+                        </button>
+                      </div>
+                      <div className="hidden md:grid grid-cols-[80px_80px_1fr_70px_28px] gap-1.5 mb-1 px-1">
+                        {['Kilometer', 'Ansatz', 'Beschrieb', 'Total', ''].map(h => (
+                          <span key={h} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{h}</span>
+                        ))}
+                      </div>
+                      <div className="space-y-1.5">
+                        {lines.filter(l => l.unit === 'km').map((line) => {
+                          const idx = lines.indexOf(line)
+                          return (
+                            <div key={idx} className="grid grid-cols-1 md:grid-cols-[80px_80px_1fr_70px_28px] gap-1.5 items-center bg-purple-50/40 rounded-lg p-2 border border-purple-100">
+                              <input type="number" min="0" step="1" value={line.quantity || ''} onChange={e => updateLine(idx, { quantity: Math.max(0, Number(e.target.value)) })} placeholder="km" className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-1 focus:ring-purple-400/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              <input type="number" min="0" step="0.01" value={line.unit_price === 0 ? '' : line.unit_price} onChange={e => updateLine(idx, { unit_price: Number(e.target.value) || 0 })} placeholder="CHF/km" className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-purple-400/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              <input type="text" placeholder="Beschrieb" value={line.description} onChange={e => updateLine(idx, { description: e.target.value })} className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-purple-400/40" />
+                              <div className="px-2 py-1.5 text-sm font-semibold text-gray-700 text-right whitespace-nowrap">{fCHF(line.total)}</div>
+                              <button type="button" onClick={() => deleteLine(idx)} className="flex items-center justify-center w-7 h-7 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X size={14} /></button>
+                            </div>
+                          )
+                        })}
+                        {lines.filter(l => l.unit === 'km').length === 0 && (
+                          <p className="text-xs text-gray-400 italic px-1">Noch keine Einträge</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* ══ RECHNUNG: bestehende generische Ansicht ══ */
+                  <>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Positionen</h3>
+                      <div className="flex items-center gap-3">
+                        <button type="button" onClick={handleOpenTimeModal} className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors">
                           <Clock size={14} /> Zeiten importieren
                         </button>
-                        <button
-                          type="button"
-                          onClick={handleOpenExpenseModal}
-                          className="flex items-center gap-1.5 text-xs font-semibold text-orange-600 hover:text-orange-800 transition-colors"
-                        >
+                        <button type="button" onClick={handleOpenExpenseModal} className="flex items-center gap-1.5 text-xs font-semibold text-orange-600 hover:text-orange-800 transition-colors">
                           <Receipt size={14} /> Material importieren
                         </button>
-                      </>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleOpenProductModal}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-[#00875A] hover:text-[#006B47] transition-colors"
-                    >
-                      <Package size={14} /> Spesen importieren
-                    </button>
-                    <button
-                      type="button"
-                      onClick={addLine}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors"
-                    >
-                      <Plus size={14} /> Eigene Position
-                    </button>
-                  </div>
-                </div>
-
-                {/* Column headers */}
-                <div className="hidden md:grid grid-cols-[2fr_60px_65px_80px_60px_65px_75px_28px] gap-2 mb-1 px-1">
-                  {['Beschreibung', 'Menge', 'Einheit', 'Preis', 'Rabatt %', 'MwSt%', 'Total', ''].map(h => (
-                    <span key={h} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                      {h}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="space-y-2">
-                  {lines.map((line, idx) => (
-                    <div
-                      key={idx}
-                      className="grid grid-cols-1 md:grid-cols-[2fr_60px_65px_80px_60px_65px_75px_28px] gap-2 items-center bg-gray-50 rounded-lg p-2 border border-gray-100"
-                    >
-                      {/* Description */}
-                      <input
-                        type="text"
-                        placeholder="Beschreibung"
-                        value={line.description}
-                        onChange={e => updateLine(idx, { description: e.target.value })}
-                        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
-                      />
-
-                      {/* Quantity */}
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={line.quantity}
-                        onChange={e => updateLine(idx, { quantity: Math.max(0, Number(e.target.value)) })}
-                        className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-1 focus:ring-green-500/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-
-                      {/* Unit */}
-                      <select
-                        value={line.unit}
-                        onChange={e => updateLine(idx, { unit: e.target.value })}
-                        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30 bg-white"
-                      >
-                        <option value="Stk.">Stk.</option>
-                        <option value="h">h</option>
-                        <option value="km">km</option>
-                      </select>
-
-                      {/* Unit price */}
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.05"
-                        value={line.unit_price === 0 ? '' : line.unit_price}
-                        onChange={e => updateLine(idx, { unit_price: Number(e.target.value) || 0 })}
-                        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
-                      />
-
-                      {/* Discount */}
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        value={line.discount === 0 ? '' : line.discount}
-                        onChange={e => updateLine(idx, { discount: Number(e.target.value) || 0 })}
-                        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
-                      />
-
-                      {/* Tax rate */}
-                      <select
-                        value={line.tax_rate}
-                        onChange={e => updateLine(idx, { tax_rate: Number(e.target.value) })}
-                        className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30"
-                      >
-                        {TAX_RATES.map(r => (
-                          <option key={r} value={r}>
-                            {r}%
-                          </option>
-                        ))}
-                      </select>
-
-                      {/* Line total */}
-                      <div className="px-2.5 py-1.5 text-sm font-semibold text-gray-700 text-right whitespace-nowrap">
-                        {fCHF(line.total)}
+                        <button type="button" onClick={handleOpenProductModal} className="flex items-center gap-1.5 text-xs font-semibold text-[#00875A] hover:text-[#006B47] transition-colors">
+                          <Package size={14} /> Spesen importieren
+                        </button>
+                        <button type="button" onClick={addLine} className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors">
+                          <Plus size={14} /> Eigene Position
+                        </button>
                       </div>
-
-                      {/* Delete */}
-                      <button
-                        type="button"
-                        onClick={() => deleteLine(idx)}
-                        className="flex items-center justify-center w-7 h-7 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                        title="Position löschen"
-                      >
-                        <X size={14} />
-                      </button>
                     </div>
-                  ))}
-                </div>
+                    <div className="hidden md:grid grid-cols-[2fr_60px_65px_80px_60px_65px_75px_28px] gap-2 mb-1 px-1">
+                      {['Beschreibung', 'Menge', 'Einheit', 'Preis', 'Rabatt %', 'MwSt%', 'Total', ''].map(h => (
+                        <span key={h} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{h}</span>
+                      ))}
+                    </div>
+                    <div className="space-y-2">
+                      {lines.map((line, idx) => (
+                        <div key={idx} className="grid grid-cols-1 md:grid-cols-[2fr_60px_65px_80px_60px_65px_75px_28px] gap-2 items-center bg-gray-50 rounded-lg p-2 border border-gray-100">
+                          <input type="text" placeholder="Beschreibung" value={line.description} onChange={e => updateLine(idx, { description: e.target.value })} className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30" />
+                          <input type="number" min="0" step="0.01" value={line.quantity} onChange={e => updateLine(idx, { quantity: Math.max(0, Number(e.target.value)) })} className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-1 focus:ring-green-500/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                          <select value={line.unit} onChange={e => updateLine(idx, { unit: e.target.value })} className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30 bg-white">
+                            <option value="Stk.">Stk.</option>
+                            <option value="h">h</option>
+                            <option value="km">km</option>
+                          </select>
+                          <input type="number" min="0" step="0.05" value={line.unit_price === 0 ? '' : line.unit_price} onChange={e => updateLine(idx, { unit_price: Number(e.target.value) || 0 })} className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30" />
+                          <input type="number" min="0" max="100" step="0.1" value={line.discount === 0 ? '' : line.discount} onChange={e => updateLine(idx, { discount: Number(e.target.value) || 0 })} className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30" />
+                          <select value={line.tax_rate} onChange={e => updateLine(idx, { tax_rate: Number(e.target.value) })} className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-green-500/30">
+                            {TAX_RATES.map(r => <option key={r} value={r}>{r}%</option>)}
+                          </select>
+                          <div className="px-2.5 py-1.5 text-sm font-semibold text-gray-700 text-right whitespace-nowrap">{fCHF(line.total)}</div>
+                          <button type="button" onClick={() => deleteLine(idx)} className="flex items-center justify-center w-7 h-7 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Position löschen"><X size={14} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
 
                 {/* Totals summary */}
                 <div className="mt-4 flex justify-end">

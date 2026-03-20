@@ -12,6 +12,8 @@ interface DocumentLine {
   discount: number
   tax_rate: number
   total: number
+  line_date?: string
+  line_worker?: string
 }
 
 interface InvoicePDFProps {
@@ -765,9 +767,9 @@ export function InvoicePDF({
                 </View>
                 {arbeitenLines.map((l, i) => (
                   <View key={i} style={[styles.sectionRow, i % 2 === 0 ? styles.sectionRowEven : styles.sectionRowOdd]}>
-                    <Text style={[styles.sectionCell, styles.rColDatum]}></Text>
+                    <Text style={[styles.sectionCell, styles.rColDatum]}>{l.line_date || ''}</Text>
                     <Text style={[styles.sectionCell, styles.rColZeit]}>{fNum(l.quantity)}</Text>
-                    <Text style={[styles.sectionCell, styles.rColArbeiter]}></Text>
+                    <Text style={[styles.sectionCell, styles.rColArbeiter]}>{l.line_worker || ''}</Text>
                     <Text style={[styles.sectionCell, styles.rColStundensatz]}>{fNum(l.unit_price)}</Text>
                     <Text style={[styles.sectionCell, styles.rColTaetigkeit]}>{l.description}</Text>
                     <Text style={[styles.sectionCell, styles.rColKosten]}>{fNum(l.total)}</Text>
@@ -922,6 +924,13 @@ export function InvoicePDF({
               {/* Totals */}
               <View style={styles.totalsSection}>
                 <View style={styles.totalsBox}>
+                  {lines.length > 0 && (
+                    <View style={[styles.totalsRow, { marginBottom: 8 }]}>
+                      <Text style={[styles.totalsLabel, { flex: 1, flexWrap: 'wrap' }]}>
+                        {'Aufwand (' + lines.map(l => l.description).filter(Boolean).join(', ') + ')'}
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.totalsRow}>
                     <Text style={styles.totalsLabel}>Nettobetrag</Text>
                     <Text style={styles.totalsValue}>{fCHF(doc.subtotal)}</Text>
