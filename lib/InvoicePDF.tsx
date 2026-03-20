@@ -38,6 +38,8 @@ interface InvoicePDFProps {
     email?: string
     phone?: string
     iban?: string
+    bank_name?: string
+    bic?: string
     uid_nr?: string
     logo_url?: string
   }
@@ -53,6 +55,7 @@ interface InvoicePDFProps {
     uid_nr?: string
   } | null
   logoBase64?: string | null
+  qrCodeBase64?: string | null
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -310,6 +313,127 @@ const styles = StyleSheet.create({
     color: TEXT_LIGHT,
   },
 
+  // ── Payment page ──
+  paymentPage: {
+    fontFamily: 'Helvetica',
+    fontSize: 9,
+    color: TEXT_DARK,
+    backgroundColor: '#FFFFFF',
+    padding: 40,
+  },
+  paymentPageTitle: {
+    fontSize: 16,
+    fontFamily: 'Helvetica-Bold',
+    color: NAVY,
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  paymentPageSubtitle: {
+    fontSize: 9,
+    color: TEXT_MID,
+    marginBottom: 28,
+  },
+  paymentSlip: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: MID_GRAY,
+    borderRadius: 4,
+  },
+  receiptSection: {
+    width: 160,
+    borderRightWidth: 1,
+    borderRightColor: MID_GRAY,
+    padding: 14,
+  },
+  receiptTitle: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: NAVY,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: MID_GRAY,
+    paddingBottom: 6,
+  },
+  receiptLabel: {
+    fontSize: 6.5,
+    fontFamily: 'Helvetica-Bold',
+    color: TEXT_LIGHT,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginTop: 8,
+    marginBottom: 2,
+  },
+  receiptValue: {
+    fontSize: 8,
+    color: TEXT_DARK,
+  },
+  receiptAmountValue: {
+    fontSize: 11,
+    fontFamily: 'Helvetica-Bold',
+    color: NAVY,
+  },
+  paymentSection2: {
+    flex: 1,
+    padding: 20,
+    flexDirection: 'row',
+    gap: 20,
+  },
+  qrBox: {
+    width: 130,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  qrImage: {
+    width: 120,
+    height: 120,
+  },
+  qrLabel: {
+    fontSize: 6.5,
+    color: TEXT_LIGHT,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  bankDetails: {
+    flex: 1,
+  },
+  bankDetailLabel: {
+    fontSize: 6.5,
+    fontFamily: 'Helvetica-Bold',
+    color: TEXT_LIGHT,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginTop: 10,
+    marginBottom: 2,
+  },
+  bankDetailValue: {
+    fontSize: 8.5,
+    color: TEXT_DARK,
+  },
+  bankDetailValueBold: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: NAVY,
+  },
+  scissors: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginTop: 20,
+  },
+  scissorsLine: {
+    flex: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: MID_GRAY,
+    borderStyle: 'dashed',
+  },
+  scissorsText: {
+    fontSize: 7,
+    color: TEXT_LIGHT,
+    marginHorizontal: 6,
+  },
+
   // ── Rapport sections ──
   sectionTitle: {
     fontSize: 9,
@@ -515,6 +639,7 @@ export function InvoicePDF({
   company,
   contact,
   logoBase64,
+  qrCodeBase64,
 }: InvoicePDFProps) {
   const isRapport = doc.type === 'order'
   const docTitle = isRapport ? 'Arbeitsrapport' : 'Rechnung'
@@ -843,6 +968,87 @@ export function InvoicePDF({
           fixed
         />
       </Page>
+
+      {/* ── Payment page (Rechnung only) ── */}
+      {!isRapport && company.iban && (
+        <Page size="A4" style={styles.paymentPage}>
+          <Text style={styles.paymentPageTitle}>Zahlungsdetails</Text>
+          <Text style={styles.paymentPageSubtitle}>Rechnung {doc.number} · {fDate(doc.date)}</Text>
+
+          {/* Scissors cut line */}
+          <View style={styles.scissors}>
+            <View style={styles.scissorsLine} />
+            <Text style={styles.scissorsText}>✂</Text>
+            <View style={styles.scissorsLine} />
+          </View>
+
+          {/* Payment slip */}
+          <View style={styles.paymentSlip}>
+            {/* Receipt stub (left) */}
+            <View style={styles.receiptSection}>
+              <Text style={styles.receiptTitle}>Empfangsschein</Text>
+              <Text style={styles.receiptLabel}>Konto / Zahlbar an</Text>
+              <Text style={styles.receiptValue}>{company.iban}</Text>
+              <Text style={styles.receiptValue}>{company.name}</Text>
+              {company.address ? <Text style={styles.receiptValue}>{company.address}</Text> : null}
+              {(company.zip || company.city) ? <Text style={styles.receiptValue}>{[company.zip, company.city].filter(Boolean).join(' ')}</Text> : null}
+              <Text style={styles.receiptLabel}>Betrag</Text>
+              <Text style={styles.receiptAmountValue}>{fCHF(doc.total)}</Text>
+              <Text style={styles.receiptLabel}>Währung</Text>
+              <Text style={styles.receiptValue}>CHF</Text>
+            </View>
+
+            {/* Main payment part (right) */}
+            <View style={styles.paymentSection2}>
+              {/* QR Code */}
+              {qrCodeBase64 && (
+                <View style={styles.qrBox}>
+                  <Image src={qrCodeBase64} style={styles.qrImage} />
+                  <Text style={styles.qrLabel}>Swiss QR-Code</Text>
+                </View>
+              )}
+
+              {/* Bank details */}
+              <View style={styles.bankDetails}>
+                <Text style={styles.bankDetailLabel}>Konto / Zahlbar an</Text>
+                <Text style={styles.bankDetailValueBold}>{company.name}</Text>
+                {company.address ? <Text style={styles.bankDetailValue}>{company.address}</Text> : null}
+                {(company.zip || company.city) ? <Text style={styles.bankDetailValue}>{[company.zip, company.city].filter(Boolean).join(' ')}</Text> : null}
+
+                <Text style={styles.bankDetailLabel}>IBAN</Text>
+                <Text style={styles.bankDetailValueBold}>{company.iban}</Text>
+
+                {company.bank_name ? (
+                  <>
+                    <Text style={styles.bankDetailLabel}>Bank</Text>
+                    <Text style={styles.bankDetailValue}>{company.bank_name}</Text>
+                  </>
+                ) : null}
+
+                {company.bic ? (
+                  <>
+                    <Text style={styles.bankDetailLabel}>BIC / SWIFT</Text>
+                    <Text style={styles.bankDetailValue}>{company.bic}</Text>
+                  </>
+                ) : null}
+
+                <Text style={styles.bankDetailLabel}>Zahlungszweck</Text>
+                <Text style={styles.bankDetailValue}>Rechnung {doc.number}</Text>
+
+                <Text style={styles.bankDetailLabel}>Betrag</Text>
+                <Text style={styles.bankDetailValueBold}>{fCHF(doc.total)}</Text>
+
+                {doc.due_date ? (
+                  <>
+                    <Text style={styles.bankDetailLabel}>Zahlbar bis</Text>
+                    <Text style={styles.bankDetailValue}>{fDate(doc.due_date)}</Text>
+                  </>
+                ) : null}
+              </View>
+            </View>
+          </View>
+        </Page>
+      )}
     </Document>
   )
 }

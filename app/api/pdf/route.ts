@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import React from 'react'
 import { InvoicePDF } from '@/lib/InvoicePDF'
+import QRCode from 'qrcode'
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
     // ── Fetch company info ──────────────────────────────────────────────────
     const { data: company, error: companyError } = await supabase
       .from('companies')
-      .select('name, address, zip, city, email, phone, iban, uid_nr, logo_url')
+      .select('name, address, zip, city, email, phone, iban, bank_name, bic, uid_nr, logo_url')
       .eq('id', doc.company_id)
       .single()
 
@@ -88,6 +89,29 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // ── Generate QR code (Swiss QR-Rechnung format) ─────────────────────────
+    let qrCodeBase64: string | null = null
+    if (doc.type === 'invoice' && company.iban) {
+      try {
+        const iban = company.iban.replace(/\s/g, '')
+        const address = [company.address, [company.zip, company.city].filter(Boolean).join(' ')].filter(Boolean).join(', ')
+        const qrData = [
+          'SPC', '0200', '1',
+          iban,
+          'K', company.name, address, '', '', '', 'CH',
+          '', '', '', '', '', '', '',
+          doc.total ? doc.total.toFixed(2) : '', 'CHF',
+          '', '', '', '', '', '', '',
+          'NON', '',
+          `Rechnung ${doc.number}`,
+          'EPD',
+        ].join('\n')
+        qrCodeBase64 = await QRCode.toDataURL(qrData, { width: 400, margin: 0, errorCorrectionLevel: 'M' })
+      } catch (qrErr) {
+        console.warn('QR code generation failed:', qrErr)
+      }
+    }
+
     // ── Render PDF ──────────────────────────────────────────────────────────
     const pdfElement = React.createElement(InvoicePDF, {
       document: doc,
@@ -95,6 +119,7 @@ export async function GET(request: NextRequest) {
       company,
       contact,
       logoBase64,
+      qrCodeBase64,
     })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

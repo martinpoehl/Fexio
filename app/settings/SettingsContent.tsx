@@ -23,6 +23,8 @@ export default function SettingsContent() {
     phone: '',
     website: '',
     iban: '',
+    bank_name: '',
+    bic: '',
     uid_nr: '',
     mwst_rate: 8.1,
     logo_url: ''
@@ -71,6 +73,8 @@ export default function SettingsContent() {
           phone: c.phone || '',
           website: c.website || '',
           iban: c.iban || '',
+          bank_name: c.bank_name || '',
+          bic: c.bic || '',
           uid_nr: c.uid_nr || '',
           mwst_rate: Number(c.mwst_rate) || 8.1,
           logo_url: c.logo_url || ''
@@ -377,6 +381,24 @@ export default function SettingsContent() {
                 onChange={e => setFormData({...formData, iban: e.target.value})}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
                 placeholder="CH56 0483 5012 3456 7800 9"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Bankname</label>
+              <input
+                value={formData.bank_name}
+                onChange={e => setFormData({...formData, bank_name: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                placeholder="z.B. Raiffeisen Schweiz"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">BIC / SWIFT</label>
+              <input
+                value={formData.bic}
+                onChange={e => setFormData({...formData, bic: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                placeholder="z.B. RAIFCH22"
               />
             </div>
             <div>
