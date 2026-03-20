@@ -1493,6 +1493,7 @@ export default function InvoicesContent() {
                       >
                         <option value="Stk.">Stk.</option>
                         <option value="Std.">Std.</option>
+                        <option value="km">km</option>
                       </select>
 
                       {/* Unit price */}
