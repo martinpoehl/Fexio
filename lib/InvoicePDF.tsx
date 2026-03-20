@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   },
   logoFull: {
     width: '100%',
-    height: 90,
+    height: 99,
     objectFit: 'cover',
   },
   logo: {
