@@ -6,7 +6,9 @@ export const metadata: Metadata = {
   description: 'Kostenlose bexio-Alternative für KMU, Freelancer und Startups',
   viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
   icons: {
-    icon: '/icon.svg',
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' }
+    ],
     shortcut: '/icon.svg',
     apple: '/icon.svg',
   },
